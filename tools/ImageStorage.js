@@ -6,11 +6,146 @@ const LocalFileStorage = require("./LocalFileStorage.js");
 const ImageFormat = require("./ImageFormat.js");
 const Dimension = require("./Dimension.js");
 const Filename = require("./Filename.js");
-const ImageProgress = require("./ImageProgress.js");
 
 class ImageStorage {
   #timeNow = new TimeNowGetter();
   #storage = null;
+
+  use(option = { cacheControl: "", expires: "" }) {
+    return (request, response, next) => {
+      if (option.cacheControl.length) {
+        response.set("Cache-Control", option.cacheControl);
+      }
+      if (option.expires.length) {
+        response.set("Expires", option.expires);
+      }
+      this.#requestImage(request, response, next);
+    };
+  }
+
+  async #requestImage(request, response, next) {
+    if (request.method !== "GET") {
+      next();
+      return;
+    }
+
+    const { path, query } = request;
+    const sizeQuery = { width: query.width, height: query.height };
+
+    const dimenReq = new Dimension(sizeQuery.width, sizeQuery.height);
+    const filenameReq = new Filename(path);
+
+    // checking existing files
+    const filenameSrc = await Promise.resolve().then(async () => {
+      const filenameSrc = new Filename(path);
+
+      const isFile = await this.#isFile(filenameSrc.toString());
+      if (isFile) return filenameSrc;
+
+      const formats = await this.#getFormatsByName(filenameReq.name);
+      if (formats.length) return new Filename(filenameReq.name, formats[0].ext);
+
+      return null;
+    });
+    if (!filenameSrc) {
+      response.status(404);
+      response.write("no files found");
+      response.end();
+      return;
+    }
+
+    // checking supported format
+    const format = ImageFormat.List.find((format) => {
+      return format.ext === filenameReq.ext;
+    });
+    if (!format) {
+      response.status(400);
+      response.write("format not support");
+      response.end();
+      return;
+    }
+
+    // prepare transformer
+    const transformer = await Promise.resolve()
+      // transform size
+      .then(async () => {
+        if (!dimenReq.isSet()) return null;
+
+        const dimenImg = await this.#getFileDimension(filenameSrc.toString());
+
+        const isSameWidth = dimenReq.width === dimenImg.width;
+        const isSameHeight = dimenReq.height === dimenImg.height;
+        const onlyWidth = dimenReq.width && !dimenReq.height;
+        const onlyHeight = !dimenReq.width && dimenReq.height;
+
+        const isSameDimension = isSameWidth && isSameHeight;
+        const onlySameWidth = onlyWidth && isSameWidth;
+        const onlySameHeight = onlyHeight && isSameHeight;
+
+        if (isSameDimension || onlySameWidth || onlySameHeight) {
+          return null;
+        }
+
+        if (dimenReq.width > dimenImg.width) {
+          dimenReq.width = dimenImg.width;
+        }
+        if (dimenReq.height > dimenImg.height) {
+          dimenReq.height = dimenImg.height;
+        }
+
+        return sharp().resize(dimenReq);
+      })
+      // transform media type
+      .then((transformer) => {
+        if (filenameReq.ext === filenameSrc.ext) return transformer;
+
+        const getTransformer = () => {
+          return transformer ? transformer : (transformer = sharp());
+        };
+
+        switch (filenameReq.ext) {
+          case ImageFormat.PNG.ext:
+            getTransformer().png();
+            break;
+          case ImageFormat.JPG.ext:
+          case ImageFormat.JPEG.ext:
+            getTransformer().jpeg();
+            break;
+          case ImageFormat.WEBP.ext:
+            getTransformer().webp();
+            break;
+        }
+
+        return transformer;
+      });
+
+    const getReadStream = async () => {
+      const readStream = await this.#storage.readStreamFilename(
+        filenameSrc.toString(),
+      );
+      if (!transformer) {
+        return readStream;
+      }
+      return readStream.pipe(transformer);
+    };
+
+    try {
+      const readStream = await getReadStream();
+      readStream.on("data", (chunk) => response.write(chunk));
+      readStream.on("end", () => response.end());
+      readStream.on("error", (error) => {
+        response.status(500);
+        response.write("read fail");
+        response.end();
+        console.error(error);
+      });
+    } catch (error) {
+      response.status(500);
+      response.write("read fail");
+      response.end();
+      console.error(error);
+    }
+  }
 
   constructor(storage) {
     this.#storage = storage;
@@ -71,91 +206,6 @@ class ImageStorage {
       stream.on("data", () => {});
       stream.on("end", () => resolve(isFile));
       stream.on("error", (error) => resolve(false));
-    });
-  }
-
-  progressImageByFilename(filename = "", option = {}) {
-    const dimenReq = new Dimension(option.width, option.height);
-    const filenameReq = new Filename(filename);
-
-    const progress = new ImageProgress();
-    return progress.onStart(async () => {
-      const format = ImageFormat.List.find(
-        (format) => format.ext === filenameReq.ext,
-      );
-      if (!format) {
-        progress.error(new Error("format not support"));
-        return;
-      }
-
-      const filenameSrc = await Promise.resolve().then(async () => {
-        const filenameSrc = new Filename(filename);
-
-        const isFile = await this.#isFile(filenameSrc.toString());
-        if (isFile) return filenameSrc;
-
-        const formats = await this.#getFormatsByName(filenameReq.name);
-        if (formats.length)
-          return new Filename(filenameReq.name, formats[0].ext);
-
-        return null;
-      });
-
-      if (!filenameSrc) {
-        progress.error(new Error("no files found"));
-        return;
-      }
-
-      const transformer = await Promise.resolve()
-        .then(async () => {
-          if (!dimenReq.isSet()) return null;
-
-          const dimenImg = await this.#getFileDimension(filenameSrc.toString());
-
-          const isSameWidth = dimenReq.width === dimenImg.width;
-          const isSameHeight = dimenReq.height === dimenImg.height;
-          const onlyWidth = dimenReq.width && !dimenReq.height;
-          const onlyHeight = !dimenReq.width && dimenReq.height;
-
-          const isSameDimension = isSameWidth && isSameHeight;
-          const onlySameWidth = onlyWidth && isSameWidth;
-          const onlySameHeight = onlyHeight && isSameHeight;
-
-          if (isSameDimension || onlySameWidth || onlySameHeight) return null;
-
-          if (dimenReq.width > dimenImg.width) dimenReq.width = dimenImg.width;
-          if (dimenReq.height > dimenImg.height)
-            dimenReq.height = dimenImg.height;
-
-          return sharp().resize(dimenReq);
-        })
-        .then((transformer) => {
-          if (filenameReq.ext === filenameSrc.ext) return transformer;
-
-          const getTransformer = () =>
-            transformer ? transformer : (transformer = sharp());
-
-          if (["png"].includes(filenameReq.ext)) getTransformer().png();
-          if (["jpg", "jpeg"].includes(filenameReq.ext))
-            getTransformer().jpeg();
-          if (["webp"].includes(filenameReq.ext)) getTransformer().webp();
-
-          return transformer;
-        });
-
-      try {
-        let readStream = await this.#storage.readStreamFilename(
-          filenameSrc.toString(),
-        );
-        if (transformer) readStream = readStream.pipe(transformer);
-        readStream.on("data", (chunk) => progress.chunk(chunk));
-        readStream.on("end", () => progress.end());
-        readStream.on("close", () => progress.close());
-        readStream.on("error", (error) => progress.error(error));
-      } catch (error) {
-        console.error(error);
-        progress.error(error);
-      }
     });
   }
 

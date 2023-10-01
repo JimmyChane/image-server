@@ -23,37 +23,14 @@ const storage = new LocalFileStorage(pathBackground);
 const imageStorage = new ImageStorage(storage);
 
 // express
-const app = express()
-  .use(cors())
-  .use("/:name", (req, res, next) => {
-    if (req.method !== "GET") return next();
-
-    const { query } = req;
-    const { name } = req.params;
-    const option = { width: query.width, height: query.height };
-
-    res
-      .set("Cache-Control", cacheControl.toString())
-      .set("Expires", expires)
-      .set("Content-Type", "image")
-      .set("Content-Disposition", `inline; filename="${name}"`);
-
-    imageStorage
-      .progressImageByFilename(name, option)
-      .on("chunk", (chunk) => res.write(chunk))
-      .on("end", () => res.end())
-      .on("error", (error) => next())
-      .call("start");
-  })
-  .use(
-    express.static(path.join(__dirname, "./public"), {
-      setHeaders: (res, path) => {
-        res.set("Expires", expires);
-        res.set("Cache-Control", cacheControl);
-      },
-      cacheControl: true,
-    }),
-  );
+const app = express();
+app.use(cors());
+app.use(
+  imageStorage.use({
+    cacheControl: cacheControl.toString(),
+    expires,
+  }),
+);
 
 // server
 const createServer = () => {
