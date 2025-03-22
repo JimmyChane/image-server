@@ -1,8 +1,8 @@
-const TimeNowGetter = require("./TimeNowGetter.js");
+import TimeNowGetter from "./TimeNowGetter";
 
-class Progress {
+export default class Progress {
   timeNow = new TimeNowGetter();
-  list = [];
+  list: { time: number; key: string; callback: Function }[] = [];
 
   on(key, callback) {
     this.list.push({ time: this.timeNow.get(), key, callback });
@@ -10,7 +10,7 @@ class Progress {
   }
 
   call(key, value) {
-    const items = this.list.reduce((items, item) => {
+    const items = this.list.reduce((items: any[], item) => {
       if (item.key === key) items.push(item);
       return items;
     }, []);
@@ -22,5 +22,3 @@ class Progress {
     return this;
   }
 }
-
-module.exports = Progress;

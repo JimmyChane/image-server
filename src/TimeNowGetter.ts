@@ -1,4 +1,4 @@
-class TimeNowGetter {
+export default class TimeNowGetter {
   #last = 0;
 
   get() {
@@ -10,5 +10,3 @@ class TimeNowGetter {
     return now;
   }
 }
-
-module.exports = TimeNowGetter;

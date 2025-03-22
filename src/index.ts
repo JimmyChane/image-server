@@ -1,20 +1,20 @@
 // module
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const http = require("http");
-const https = require("https");
-const fs = require("fs");
+import express from "express";
+import cors from "cors";
+import path from "path";
+import http from "http";
+import https from "https";
+import fs from "fs";
 
 // tool
-const CacheControl = require("./tools/CacheControl");
-const ENV = require("./tools/ENV");
-const LocalFileStorage = require("./tools/LocalFileStorage");
-const ImageStorage = require("./tools/ImageStorage");
+import CacheControl from "./CacheControl";
+import ENV from "./ENV";
+import LocalFileStorage from "./LocalFileStorage";
+import ImageStorage from "./ImageStorage";
 
 // config
 const port = ENV.isProduction() ? 83 : 81;
-const pathBackground = path.join(__dirname, "./public");
+const pathBackground = path.join(__dirname, "../public");
 const expires = "604800";
 const cacheControl = new CacheControl().maxAge(expires).public().toString();
 
@@ -35,8 +35,8 @@ app.use(
 // server
 const createServer = () => {
   if (ENV.isProduction()) {
-    const pathPrivateKey = path.join(__dirname, "./ssl/privkey.pem");
-    const pathCertKey = path.join(__dirname, "./ssl/cert.pem");
+    const pathPrivateKey = path.join(__dirname, "../ssl/privkey.pem");
+    const pathCertKey = path.join(__dirname, "../ssl/cert.pem");
 
     return https.createServer({
       key: fs.readFileSync(pathPrivateKey, "utf-8"),

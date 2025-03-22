@@ -1,4 +1,4 @@
-module.exports = class ConsoleText {
+export default class ConsoleText {
   static black(text) {
     return new ConsoleText(text).black().toString();
   }
@@ -25,7 +25,7 @@ module.exports = class ConsoleText {
   }
 
   #text;
-  #color = undefined;
+  #color: string | undefined = undefined;
 
   constructor(text) {
     this.#text = text;
@@ -68,4 +68,4 @@ module.exports = class ConsoleText {
     if (this.#color === undefined) return `${this.#text}`;
     return `${this.#color}${this.#text}${"\u001B[0m"}`;
   }
-};
+}

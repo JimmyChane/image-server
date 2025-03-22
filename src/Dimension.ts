@@ -1,5 +1,8 @@
-module.exports = class Dimension {
-  constructor(width = 0, height = 0) {
+export default class Dimension {
+  width: any = 0;
+  height: any = 0;
+
+  constructor(width: any = 0, height: any = 0) {
     width = Number.parseInt(width);
     height = Number.parseInt(height);
     width = !Number.isNaN(width) ? width : 0;
@@ -12,4 +15,4 @@ module.exports = class Dimension {
   isSet() {
     return this.width > 0 || this.height > 0;
   }
-};
+}

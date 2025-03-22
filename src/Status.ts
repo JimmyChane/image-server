@@ -1,7 +1,7 @@
-const ConsoleText = require("./ConsoleText");
-const TimeBuilder = require("./TimeBuilder");
+import ConsoleText from "./ConsoleText";
+import TimeBuilder from "./TimeBuilder";
 
-module.exports = class Status {
+export default class Status {
   static time() {
     return new Status().time();
   }
@@ -15,7 +15,7 @@ module.exports = class Status {
     return new Status().message(text);
   }
 
-  #time = undefined;
+  #time: string | undefined = undefined;
   #title = undefined;
   #state = undefined;
   #message = undefined;
@@ -38,7 +38,7 @@ module.exports = class Status {
   }
 
   log() {
-    const contents = [];
+    const contents: string[] = [];
 
     if (this.#time !== undefined) {
       contents.push(ConsoleText.purple(this.#time));
@@ -66,7 +66,7 @@ module.exports = class Status {
     console.log(str);
   }
   success() {
-    const contents = [];
+    const contents: string[] = [];
 
     if (this.#time !== undefined) {
       contents.push(ConsoleText.purple(this.#time));
@@ -92,7 +92,7 @@ module.exports = class Status {
     console.log(str);
   }
   error() {
-    const contents = [];
+    const contents: string[] = [];
 
     if (this.#time !== undefined) {
       contents.push(ConsoleText.purple(this.#time));
@@ -117,4 +117,4 @@ module.exports = class Status {
 
     console.error(str);
   }
-};
+}

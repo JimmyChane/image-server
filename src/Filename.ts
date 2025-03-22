@@ -1,4 +1,4 @@
-module.exports = class Filename {
+export default class Filename {
   static filterName(name = "") {
     while (name.indexOf(".") === 0) {
       name = name.substring(1, name.length);
@@ -37,4 +37,4 @@ module.exports = class Filename {
     }
     return this;
   }
-};
+}

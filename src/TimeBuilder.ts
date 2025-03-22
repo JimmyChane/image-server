@@ -1,4 +1,4 @@
-module.exports = class TimeBuilder {
+export default class TimeBuilder {
   static #toString(time) {
     time = time.toString();
     return time.length == 1 ? `0${time}` : time;
@@ -15,7 +15,7 @@ module.exports = class TimeBuilder {
 
     return `${year}${separator}${month}${separator}${date}${separator}${hour}${separator}${minute}${separator}${second}`;
   }
-  static now(separator = "") {
+  static now(separator = ""): string {
     const now = new Date();
 
     const year = now.getFullYear(); // xxxx
@@ -27,4 +27,4 @@ module.exports = class TimeBuilder {
 
     return `${year}${month}${date}${separator}${hour}${minute}${second}`;
   }
-};
+}

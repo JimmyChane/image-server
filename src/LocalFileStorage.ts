@@ -1,9 +1,11 @@
-const fs = require("fs");
-const path = require("path");
-const FileStorage = require("./FileStorage.js");
-const Status = require("./Status.js");
+import fs from "fs";
+import path from "path";
+import FileStorage from "./FileStorage";
+import Status from "./Status";
 
-class LocalFileStorage extends FileStorage {
+export default class LocalFileStorage extends FileStorage {
+  config: { absolutePath: string };
+
   constructor(absolutePath = "") {
     super();
     this.config = { absolutePath };
@@ -31,11 +33,19 @@ class LocalFileStorage extends FileStorage {
         .message(this.config.absolutePath)
         .success();
     } catch (error) {
-      Status.time()
-        .title(path.basename(__filename, path.extname(__filename)))
-        .state("Error")
-        .message(error.message)
-        .error();
+      if (error instanceof Error) {
+        Status.time()
+          .title(path.basename(__filename, path.extname(__filename)))
+          .state("Error")
+          .message(error.message)
+          .error();
+      } else {
+        Status.time()
+          .title(path.basename(__filename, path.extname(__filename)))
+          .state("Error")
+          .message(error)
+          .error();
+      }
     }
   }
   #asFilenamePath(filename) {
@@ -87,5 +97,3 @@ class LocalFileStorage extends FileStorage {
     return this.#asFilenamePath(filename);
   }
 }
-
-module.exports = LocalFileStorage;

@@ -1,4 +1,6 @@
-class FileStorage {
+import { ReadStream, WriteStream } from "fs";
+
+export default abstract class FileStorage {
   static filenameStartsWiths(filename, ...characters) {
     for (let character of characters) {
       if (filename.startsWith(character)) return character;
@@ -33,10 +35,8 @@ class FileStorage {
   }
 
   constructor() {}
-  async getFilenames() {}
-  async deleteFilename(filename) {}
-  async readStreamFilename(filename) {}
-  async writeStreamFilename(filename) {}
+  abstract getFilenames(): Promise<string[]>;
+  abstract deleteFilename(filename): Promise<any>;
+  abstract readStreamFilename(filename): Promise<ReadStream>;
+  abstract writeStreamFilename(filename): Promise<WriteStream>;
 }
-
-module.exports = FileStorage;

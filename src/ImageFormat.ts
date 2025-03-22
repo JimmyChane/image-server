@@ -1,4 +1,4 @@
-module.exports = class ImageFormat {
+export default class ImageFormat {
   static WEBP = new ImageFormat("image/webp", "webp");
   static PNG = new ImageFormat("image/png", "png");
   static JPG = new ImageFormat("image/jpg", "jpg");
@@ -18,6 +18,9 @@ module.exports = class ImageFormat {
     throw new Error("file type not supported");
   }
 
+  mimetype: any;
+  ext: any;
+
   constructor(mimetype, ext) {
     this.mimetype = mimetype;
     this.ext = ext;
@@ -29,4 +32,4 @@ module.exports = class ImageFormat {
   isSameExt(ext) {
     return this.ext === ext;
   }
-};
+}

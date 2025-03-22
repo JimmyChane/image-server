@@ -1,11 +1,11 @@
-module.exports = class CacheControl {
+export default class CacheControl {
   static #optString(x) {
     if (typeof x !== "string") return "";
     while (x.includes(" ")) x = x.replace(" ", "");
     return x;
   }
 
-  #contents = [];
+  #contents: any[] = [];
 
   public() {
     return this.on("public");
@@ -77,4 +77,4 @@ module.exports = class CacheControl {
       return `${str}${key}${value}`;
     }, "");
   }
-};
+}

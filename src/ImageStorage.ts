@@ -1,15 +1,15 @@
-const { Readable } = require("stream");
-const sharp = require("sharp"); // https://sharp.pixelplumbing.com
+import { Readable } from "stream";
+import sharp from "sharp"; // https://sharp.pixelplumbing.com
 
-const TimeNowGetter = require("./TimeNowGetter.js");
-const LocalFileStorage = require("./LocalFileStorage.js");
-const ImageFormat = require("./ImageFormat.js");
-const Dimension = require("./Dimension.js");
-const Filename = require("./Filename.js");
+import TimeNowGetter from "./TimeNowGetter";
+import LocalFileStorage from "./LocalFileStorage";
+import ImageFormat from "./ImageFormat";
+import Dimension from "./Dimension";
+import Filename from "./Filename";
 
-class ImageStorage {
-  #timeNow = new TimeNowGetter();
-  #storage = null;
+export default class ImageStorage {
+  readonly #timeNow = new TimeNowGetter();
+  readonly #storage: LocalFileStorage;
 
   use(option = { cacheControl: "", expires: "" }) {
     return (request, response, next) => {
@@ -71,7 +71,9 @@ class ImageStorage {
       .then(async () => {
         if (!dimenReq.isSet()) return null;
 
-        const dimenImg = await this.#getFileDimension(filenameSrc.toString());
+        const dimenImg: any = await this.#getFileDimension(
+          filenameSrc.toString(),
+        );
 
         const isSameWidth = dimenReq.width === dimenImg.width;
         const isSameHeight = dimenReq.height === dimenImg.height;
@@ -120,7 +122,7 @@ class ImageStorage {
       });
 
     const getReadStream = async () => {
-      const readStream = await this.#storage.readStreamFilename(
+      const readStream = await this.#storage?.readStreamFilename(
         filenameSrc.toString(),
       );
       if (!transformer) {
@@ -147,7 +149,7 @@ class ImageStorage {
     }
   }
 
-  constructor(storage) {
+  constructor(storage: LocalFileStorage) {
     this.#storage = storage;
   }
 
@@ -156,9 +158,15 @@ class ImageStorage {
   }
 
   async #getFileDimension(filename = "") {
+    const storage = this.#storage;
+    if (!storage) return { filename: undefined, isSuccess: false };
+
     const filenameObj = new Filename(filename);
-    if (this.isLocalFileStorage() && filenameObj.ext !== ImageFormat.WEBP.ext) {
-      const absolutePath = this.#storage.getAbsolutePathOfFilename(
+    if (
+      this.#storage instanceof LocalFileStorage &&
+      filenameObj.ext !== ImageFormat.WEBP.ext
+    ) {
+      const absolutePath = storage.getAbsolutePathOfFilename(
         filenameObj.toString(),
       );
       const imageStream = sharp(absolutePath);
@@ -168,7 +176,7 @@ class ImageStorage {
       return dimen;
     }
 
-    let readStream = await this.#storage.readStreamFilename(
+    const fileReadStream = await storage.readStreamFilename(
       filenameObj.toString(),
     );
     return await new Promise((resolve, reject) => {
@@ -180,7 +188,7 @@ class ImageStorage {
         height = info.height;
       });
 
-      readStream = readStream
+      fileReadStream
         .pipe(sharpStream)
         .on("data", () => {})
         .on("close", () => resolve({ width, height }))
@@ -188,7 +196,7 @@ class ImageStorage {
     });
   }
   async #getFormatsByName(name = "") {
-    const formats = [];
+    const formats: ImageFormat[] = [];
     for (const format of ImageFormat.List) {
       const filename = new Filename(name, format.ext);
       const isFile = await this.#isFile(filename.toString());
@@ -197,12 +205,15 @@ class ImageStorage {
     return formats;
   }
   async #isFile(filename = "") {
-    if (this.isLocalFileStorage()) return this.#storage.isFile(filename);
+    const storage = this.#storage;
+    if (!storage) return { filename: undefined, isSuccess: false };
+
+    if (this.isLocalFileStorage()) return this.#storage?.isFile(filename);
     return await new Promise(async (resolve, reject) => {
       let isFile = false;
 
-      const stream = await this.#storage.readStreamFilename(filename);
-      stream = stream.pipe(sharp().on("info", () => (isFile = true)));
+      const fileStream = await storage.readStreamFilename(filename);
+      const stream = fileStream.pipe(sharp().on("info", () => (isFile = true)));
       stream.on("data", () => {});
       stream.on("end", () => resolve(isFile));
       stream.on("error", (error) => resolve(false));
@@ -210,19 +221,22 @@ class ImageStorage {
   }
 
   async getImageFilenames() {
-    return await this.#storage.getFilenames();
+    return await this.#storage?.getFilenames();
   }
 
   async deleteImageByFilename(filename = "") {
     try {
-      await this.#storage.deleteFilename(filename);
+      await this.#storage?.deleteFilename(filename);
       return filename;
     } catch (error) {
       throw new Error("cannot delete file");
     }
   }
 
-  async addImageByFiles(files = []) {
+  async addImageByFiles(files: any[] = []) {
+    const storage = this.#storage;
+    if (!storage) return { filename: undefined, isSuccess: false };
+
     if (!files.length) throw new Error("empty files");
 
     const contextFiles = files.map((file) => {
@@ -236,8 +250,8 @@ class ImageStorage {
       const { file, name, ext } = parse;
       const filename = `${name}.${ext}`;
 
-      return new Promise(async (resolve) => {
-        const write = await this.#storage.writeStreamFilename(filename);
+      return new Promise<string>(async (resolve) => {
+        const write = await storage.writeStreamFilename(filename);
         write.on("finish", () => resolve(filename));
 
         const read = new Readable();
@@ -249,16 +263,19 @@ class ImageStorage {
     const resultFiles = await Promise.allSettled(promiseFiles);
     return resultFiles.map((result) => {
       return {
-        filename: result.value,
+        filename: result.status === "fulfilled" ? result.value : undefined,
         isSuccess: result.status === "fulfilled",
       };
     });
   }
-  async addImageByTemps(temps = [], deleteTempAfter = false) {
+  async addImageByTemps(temps: any = [], deleteTempAfter = false) {
+    const storage = this.#storage;
+    if (!storage) return { filename: undefined, isSuccess: false };
+
     if (!temps.length) throw new Error("empty temps");
 
     const RESULT_OK = "ok";
-    const results = [];
+    const results: { filename: string; isSuccess: boolean }[] = [];
     for (const temp of temps) {
       const { name, timeout, expiry } = temp;
       const filename = new Filename(name);
@@ -266,9 +283,7 @@ class ImageStorage {
 
       const filenamePromise = new Promise(async (resolve, reject) => {
         const reader = await temp.readStream();
-        const writer = await this.#storage.writeStreamFilename(
-          filename.toString(),
-        );
+        const writer = await storage.writeStreamFilename(filename.toString());
         writer.on("close", () => resolve(RESULT_OK));
         writer.on("error", (error) => reject(error));
         reader.pipe(writer);
@@ -294,5 +309,3 @@ class ImageStorage {
     return results;
   }
 }
-
-module.exports = ImageStorage;
