@@ -1,26 +1,26 @@
 export default class Filename {
-  static filterName(name = "") {
-    while (name.indexOf(".") === 0) {
+  static filterName(name = '') {
+    while (name.indexOf('.') === 0) {
       name = name.substring(1, name.length);
     }
-    while (name.lastIndexOf(".") === name.length - 1) {
+    while (name.lastIndexOf('.') === name.length - 1) {
       name = name.substring(0, name.length - 1);
     }
     return name;
   }
 
-  name = "";
-  ext = "";
+  name = '';
+  ext = '';
 
-  constructor(name = "", ext = "") {
+  constructor(name = '', ext = '') {
     const filename = `${name}.${ext}`;
 
     const str = Filename.filterName(filename);
-    const lastIndexDot = str.lastIndexOf(".");
+    const lastIndexDot = str.lastIndexOf('.');
 
     if (lastIndexDot === -1) {
       this.name = str;
-      this.ext = "";
+      this.ext = '';
       return;
     }
 
@@ -31,7 +31,7 @@ export default class Filename {
   toString() {
     return Filename.filterName(`${this.name}.${this.ext}`);
   }
-  replaceExt(ext = "") {
+  replaceExt(ext = '') {
     if (ext.length) {
       this.ext = ext;
     }

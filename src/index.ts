@@ -1,21 +1,21 @@
 // module
-import express from "express";
-import cors from "cors";
-import path from "path";
-import http from "http";
-import https from "https";
-import fs from "fs";
+import cors from 'cors';
+import express from 'express';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import path from 'path';
 
 // tool
-import CacheControl from "./CacheControl";
-import ENV from "./ENV";
-import LocalFileStorage from "./LocalFileStorage";
-import ImageStorage from "./ImageStorage";
+import CacheControl from './CacheControl';
+import ENV from './ENV';
+import ImageStorage from './ImageStorage';
+import LocalFileStorage from './LocalFileStorage';
 
 // config
 const port = ENV.isProduction() ? 83 : 81;
-const pathBackground = path.join(__dirname, "../public");
-const expires = "604800";
+const pathBackground = path.join(__dirname, '../public');
+const expires = '604800';
 const cacheControl = new CacheControl().maxAge(expires).public().toString();
 
 // create
@@ -25,22 +25,17 @@ const imageStorage = new ImageStorage(storage);
 // express
 const app = express();
 app.use(cors());
-app.use(
-  imageStorage.use({
-    cacheControl: cacheControl.toString(),
-    expires,
-  }),
-);
+app.use(imageStorage.use({ cacheControl: cacheControl.toString(), expires }));
 
 // server
 const createServer = () => {
   if (ENV.isProduction()) {
-    const pathPrivateKey = path.join(__dirname, "../ssl/privkey.pem");
-    const pathCertKey = path.join(__dirname, "../ssl/cert.pem");
+    const pathPrivateKey = path.join(__dirname, '../ssl/privkey.pem');
+    const pathCertKey = path.join(__dirname, '../ssl/cert.pem');
 
     return https.createServer({
-      key: fs.readFileSync(pathPrivateKey, "utf-8"),
-      cert: fs.readFileSync(pathCertKey, "utf-8"),
+      key: fs.readFileSync(pathPrivateKey, 'utf-8'),
+      cert: fs.readFileSync(pathCertKey, 'utf-8'),
     });
   }
   return http.createServer(app);

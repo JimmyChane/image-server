@@ -3,7 +3,7 @@ export default class TimeBuilder {
     time = time.toString();
     return time.length == 1 ? `0${time}` : time;
   }
-  static getCurrent(separator = "") {
+  static getCurrent(separator = '') {
     const now = new Date();
 
     const year = now.getUTCFullYear();
@@ -15,7 +15,7 @@ export default class TimeBuilder {
 
     return `${year}${separator}${month}${separator}${date}${separator}${hour}${separator}${minute}${separator}${second}`;
   }
-  static now(separator = ""): string {
+  static now(separator = ''): string {
     const now = new Date();
 
     const year = now.getFullYear(); // xxxx

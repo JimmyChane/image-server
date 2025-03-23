@@ -32,40 +32,40 @@ export default class ConsoleText {
   }
 
   black() {
-    this.#color = "\u001B[30m";
+    this.#color = '\u001B[30m';
     return this;
   }
   red() {
-    this.#color = "\u001B[31m";
+    this.#color = '\u001B[31m';
     return this;
   }
   green() {
-    this.#color = "\u001B[32m";
+    this.#color = '\u001B[32m';
     return this;
   }
   yellow() {
-    this.#color = "\u001B[33m";
+    this.#color = '\u001B[33m';
     return this;
   }
   blue() {
-    this.#color = "\u001B[34m";
+    this.#color = '\u001B[34m';
     return this;
   }
   purple() {
-    this.#color = "\u001B[35m";
+    this.#color = '\u001B[35m';
     return this;
   }
   cyan() {
-    this.#color = "\u001B[36m";
+    this.#color = '\u001B[36m';
     return this;
   }
   white() {
-    this.#color = "\u001B[37m";
+    this.#color = '\u001B[37m';
     return this;
   }
 
   toString() {
     if (this.#color === undefined) return `${this.#text}`;
-    return `${this.#color}${this.#text}${"\u001B[0m"}`;
+    return `${this.#color}${this.#text}${'\u001B[0m'}`;
   }
 }

@@ -1,12 +1,13 @@
-import fs from "fs";
-import path from "path";
-import FileStorage from "./FileStorage";
-import Status from "./Status";
+import fs from 'fs';
+import path from 'path';
+
+import FileStorage from './FileStorage';
+import Status from './Status';
 
 export default class LocalFileStorage extends FileStorage {
   config: { absolutePath: string };
 
-  constructor(absolutePath = "") {
+  constructor(absolutePath = '') {
     super();
     this.config = { absolutePath };
     this.#initialCheck();
@@ -21,7 +22,7 @@ export default class LocalFileStorage extends FileStorage {
       if (isDirectory) {
         Status.time()
           .title(path.basename(__filename, path.extname(__filename)))
-          .state("Directory")
+          .state('Directory')
           .message(this.config.absolutePath)
           .success();
         return;
@@ -29,20 +30,20 @@ export default class LocalFileStorage extends FileStorage {
       fs.mkdirSync(absolutePath, { recursive: false });
       Status.time()
         .title(path.basename(__filename, path.extname(__filename)))
-        .state("Directory Created")
+        .state('Directory Created')
         .message(this.config.absolutePath)
         .success();
     } catch (error) {
       if (error instanceof Error) {
         Status.time()
           .title(path.basename(__filename, path.extname(__filename)))
-          .state("Error")
+          .state('Error')
           .message(error.message)
           .error();
       } else {
         Status.time()
           .title(path.basename(__filename, path.extname(__filename)))
-          .state("Error")
+          .state('Error')
           .message(error)
           .error();
       }
@@ -76,7 +77,7 @@ export default class LocalFileStorage extends FileStorage {
   async readStreamFilename(filename) {
     filename = LocalFileStorage.validateFilename(filename);
     let isFile = this.isFile(filename);
-    if (!isFile) throw new Error("no such file");
+    if (!isFile) throw new Error('no such file');
     let read = fs.createReadStream(this.#asFilenamePath(filename));
     return read;
   }
@@ -84,7 +85,7 @@ export default class LocalFileStorage extends FileStorage {
   async writeStreamFilename(filename) {
     filename = LocalFileStorage.validateFilename(filename);
     let isFile = this.isFile(filename);
-    if (isFile) throw new Error("file already exist");
+    if (isFile) throw new Error('file already exist');
     let write = fs.createWriteStream(this.#asFilenamePath(filename));
     return write;
   }

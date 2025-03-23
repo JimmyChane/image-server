@@ -1,4 +1,4 @@
-import TimeNowGetter from "./TimeNowGetter";
+import TimeNowGetter from './TimeNowGetter';
 
 export default class Progress {
   timeNow = new TimeNowGetter();

@@ -1,30 +1,31 @@
-import { Readable } from "stream";
-import sharp from "sharp"; // https://sharp.pixelplumbing.com
+// https://sharp.pixelplumbing.com
+import sharp from 'sharp';
+import { Readable } from 'stream';
 
-import TimeNowGetter from "./TimeNowGetter";
-import LocalFileStorage from "./LocalFileStorage";
-import ImageFormat from "./ImageFormat";
-import Dimension from "./Dimension";
-import Filename from "./Filename";
+import Dimension from './Dimension';
+import Filename from './Filename';
+import ImageFormat from './ImageFormat';
+import LocalFileStorage from './LocalFileStorage';
+import TimeNowGetter from './TimeNowGetter';
 
 export default class ImageStorage {
   readonly #timeNow = new TimeNowGetter();
   readonly #storage: LocalFileStorage;
 
-  use(option = { cacheControl: "", expires: "" }) {
+  use(option = { cacheControl: '', expires: '' }) {
     return (request, response, next) => {
       if (option.cacheControl.length) {
-        response.set("Cache-Control", option.cacheControl);
+        response.set('Cache-Control', option.cacheControl);
       }
       if (option.expires.length) {
-        response.set("Expires", option.expires);
+        response.set('Expires', option.expires);
       }
       this.#requestImage(request, response, next);
     };
   }
 
   async #requestImage(request, response, next) {
-    if (request.method !== "GET") {
+    if (request.method !== 'GET') {
       next();
       return;
     }
@@ -49,7 +50,7 @@ export default class ImageStorage {
     });
     if (!filenameSrc) {
       response.status(404);
-      response.write("no files found");
+      response.write('no files found');
       response.end();
       return;
     }
@@ -60,7 +61,7 @@ export default class ImageStorage {
     });
     if (!format) {
       response.status(400);
-      response.write("format not support");
+      response.write('format not support');
       response.end();
       return;
     }
@@ -71,9 +72,7 @@ export default class ImageStorage {
       .then(async () => {
         if (!dimenReq.isSet()) return null;
 
-        const dimenImg: any = await this.#getFileDimension(
-          filenameSrc.toString(),
-        );
+        const dimenImg: any = await this.#getFileDimension(filenameSrc.toString());
 
         const isSameWidth = dimenReq.width === dimenImg.width;
         const isSameHeight = dimenReq.height === dimenImg.height;
@@ -122,9 +121,7 @@ export default class ImageStorage {
       });
 
     const getReadStream = async () => {
-      const readStream = await this.#storage?.readStreamFilename(
-        filenameSrc.toString(),
-      );
+      const readStream = await this.#storage?.readStreamFilename(filenameSrc.toString());
       if (!transformer) {
         return readStream;
       }
@@ -133,17 +130,17 @@ export default class ImageStorage {
 
     try {
       const readStream = await getReadStream();
-      readStream.on("data", (chunk) => response.write(chunk));
-      readStream.on("end", () => response.end());
-      readStream.on("error", (error) => {
+      readStream.on('data', (chunk) => response.write(chunk));
+      readStream.on('end', () => response.end());
+      readStream.on('error', (error) => {
         response.status(500);
-        response.write("read fail");
+        response.write('read fail');
         response.end();
         console.error(error);
       });
     } catch (error) {
       response.status(500);
-      response.write("read fail");
+      response.write('read fail');
       response.end();
       console.error(error);
     }
@@ -157,18 +154,13 @@ export default class ImageStorage {
     return this.#storage instanceof LocalFileStorage;
   }
 
-  async #getFileDimension(filename = "") {
+  async #getFileDimension(filename = '') {
     const storage = this.#storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
     const filenameObj = new Filename(filename);
-    if (
-      this.#storage instanceof LocalFileStorage &&
-      filenameObj.ext !== ImageFormat.WEBP.ext
-    ) {
-      const absolutePath = storage.getAbsolutePathOfFilename(
-        filenameObj.toString(),
-      );
+    if (this.#storage instanceof LocalFileStorage && filenameObj.ext !== ImageFormat.WEBP.ext) {
+      const absolutePath = storage.getAbsolutePathOfFilename(filenameObj.toString());
       const imageStream = sharp(absolutePath);
       const metadata = await imageStream.metadata();
       const dimen = { width: metadata.width, height: metadata.height };
@@ -176,26 +168,24 @@ export default class ImageStorage {
       return dimen;
     }
 
-    const fileReadStream = await storage.readStreamFilename(
-      filenameObj.toString(),
-    );
+    const fileReadStream = await storage.readStreamFilename(filenameObj.toString());
     return await new Promise((resolve, reject) => {
       let width = 0;
       let height = 0;
 
-      const sharpStream = sharp().on("info", (info) => {
+      const sharpStream = sharp().on('info', (info) => {
         width = info.width;
         height = info.height;
       });
 
       fileReadStream
         .pipe(sharpStream)
-        .on("data", () => {})
-        .on("close", () => resolve({ width, height }))
-        .on("error", (error) => reject(error));
+        .on('data', () => {})
+        .on('close', () => resolve({ width, height }))
+        .on('error', (error) => reject(error));
     });
   }
-  async #getFormatsByName(name = "") {
+  async #getFormatsByName(name = '') {
     const formats: ImageFormat[] = [];
     for (const format of ImageFormat.List) {
       const filename = new Filename(name, format.ext);
@@ -204,7 +194,7 @@ export default class ImageStorage {
     }
     return formats;
   }
-  async #isFile(filename = "") {
+  async #isFile(filename = '') {
     const storage = this.#storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
@@ -213,10 +203,10 @@ export default class ImageStorage {
       let isFile = false;
 
       const fileStream = await storage.readStreamFilename(filename);
-      const stream = fileStream.pipe(sharp().on("info", () => (isFile = true)));
-      stream.on("data", () => {});
-      stream.on("end", () => resolve(isFile));
-      stream.on("error", (error) => resolve(false));
+      const stream = fileStream.pipe(sharp().on('info', () => (isFile = true)));
+      stream.on('data', () => {});
+      stream.on('end', () => resolve(isFile));
+      stream.on('error', (error) => resolve(false));
     });
   }
 
@@ -224,12 +214,12 @@ export default class ImageStorage {
     return await this.#storage?.getFilenames();
   }
 
-  async deleteImageByFilename(filename = "") {
+  async deleteImageByFilename(filename = '') {
     try {
       await this.#storage?.deleteFilename(filename);
       return filename;
     } catch (error) {
-      throw new Error("cannot delete file");
+      throw new Error('cannot delete file');
     }
   }
 
@@ -237,7 +227,7 @@ export default class ImageStorage {
     const storage = this.#storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
-    if (!files.length) throw new Error("empty files");
+    if (!files.length) throw new Error('empty files');
 
     const contextFiles = files.map((file) => {
       return {
@@ -252,7 +242,7 @@ export default class ImageStorage {
 
       return new Promise<string>(async (resolve) => {
         const write = await storage.writeStreamFilename(filename);
-        write.on("finish", () => resolve(filename));
+        write.on('finish', () => resolve(filename));
 
         const read = new Readable();
         read.pipe(write);
@@ -263,8 +253,8 @@ export default class ImageStorage {
     const resultFiles = await Promise.allSettled(promiseFiles);
     return resultFiles.map((result) => {
       return {
-        filename: result.status === "fulfilled" ? result.value : undefined,
-        isSuccess: result.status === "fulfilled",
+        filename: result.status === 'fulfilled' ? result.value : undefined,
+        isSuccess: result.status === 'fulfilled',
       };
     });
   }
@@ -272,9 +262,9 @@ export default class ImageStorage {
     const storage = this.#storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
-    if (!temps.length) throw new Error("empty temps");
+    if (!temps.length) throw new Error('empty temps');
 
-    const RESULT_OK = "ok";
+    const RESULT_OK = 'ok';
     const results: { filename: string; isSuccess: boolean }[] = [];
     for (const temp of temps) {
       const { name, timeout, expiry } = temp;
@@ -284,8 +274,8 @@ export default class ImageStorage {
       const filenamePromise = new Promise(async (resolve, reject) => {
         const reader = await temp.readStream();
         const writer = await storage.writeStreamFilename(filename.toString());
-        writer.on("close", () => resolve(RESULT_OK));
-        writer.on("error", (error) => reject(error));
+        writer.on('close', () => resolve(RESULT_OK));
+        writer.on('error', (error) => reject(error));
         reader.pipe(writer);
       });
 
@@ -293,7 +283,7 @@ export default class ImageStorage {
         const result = await filenamePromise;
 
         if (result !== RESULT_OK) {
-          throw new Error("error copying image temp");
+          throw new Error('error copying image temp');
         }
 
         if (deleteTempAfter) {

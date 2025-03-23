@@ -1,5 +1,5 @@
-import ConsoleText from "./ConsoleText";
-import TimeBuilder from "./TimeBuilder";
+import ConsoleText from './ConsoleText';
+import TimeBuilder from './TimeBuilder';
 
 export default class Status {
   static time() {
@@ -21,7 +21,7 @@ export default class Status {
   #message = undefined;
 
   time() {
-    this.#time = TimeBuilder.now("-");
+    this.#time = TimeBuilder.now('-');
     return this;
   }
   title(text) {
@@ -45,11 +45,7 @@ export default class Status {
     }
 
     if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(
-        `(${ConsoleText.blue(this.#title)}: ${ConsoleText.yellow(
-          this.#state,
-        )})`,
-      );
+      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.yellow(this.#state)})`);
     } else if (this.#title !== undefined) {
       contents.push(`(${ConsoleText.blue(this.#title)})`);
     } else if (this.#state !== undefined) {
@@ -61,7 +57,7 @@ export default class Status {
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;
       return `${str} ${content}`;
-    }, "");
+    }, '');
 
     console.log(str);
   }
@@ -73,9 +69,7 @@ export default class Status {
     }
 
     if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(
-        `(${ConsoleText.blue(this.#title)}: ${ConsoleText.green(this.#state)})`,
-      );
+      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.green(this.#state)})`);
     } else if (this.#title !== undefined) {
       contents.push(`(${ConsoleText.blue(this.#title)})`);
     } else if (this.#state !== undefined) {
@@ -87,7 +81,7 @@ export default class Status {
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;
       return `${str} ${content}`;
-    }, "");
+    }, '');
 
     console.log(str);
   }
@@ -99,9 +93,7 @@ export default class Status {
     }
 
     if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(
-        `(${ConsoleText.blue(this.#title)}: ${ConsoleText.red(this.#state)})`,
-      );
+      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.red(this.#state)})`);
     } else if (this.#title !== undefined) {
       contents.push(`(${ConsoleText.blue(this.#title)})`);
     } else if (this.#state !== undefined) {
@@ -113,7 +105,7 @@ export default class Status {
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;
       return `${str} ${content}`;
-    }, "");
+    }, '');
 
     console.error(str);
   }

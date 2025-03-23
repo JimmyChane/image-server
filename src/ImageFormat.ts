@@ -1,21 +1,16 @@
 export default class ImageFormat {
-  static WEBP = new ImageFormat("image/webp", "webp");
-  static PNG = new ImageFormat("image/png", "png");
-  static JPG = new ImageFormat("image/jpg", "jpg");
-  static JPEG = new ImageFormat("image/jpeg", "jpeg");
+  static WEBP = new ImageFormat('image/webp', 'webp');
+  static PNG = new ImageFormat('image/png', 'png');
+  static JPG = new ImageFormat('image/jpg', 'jpg');
+  static JPEG = new ImageFormat('image/jpeg', 'jpeg');
 
-  static List = [
-    ImageFormat.WEBP,
-    ImageFormat.PNG,
-    ImageFormat.JPG,
-    ImageFormat.JPEG,
-  ];
+  static List = [ImageFormat.WEBP, ImageFormat.PNG, ImageFormat.JPG, ImageFormat.JPEG];
 
   static parseMimeTypeToExt(mimetype) {
     for (const format of ImageFormat.List) {
       if (format.isSameMimetype(mimetype)) return format.ext;
     }
-    throw new Error("file type not supported");
+    throw new Error('file type not supported');
   }
 
   mimetype: any;
