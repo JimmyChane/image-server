@@ -7,51 +7,51 @@ export function optCacheControlString(x?: string): string {
 export class CacheControl {
   private readonly contents: any[] = [];
 
-  public() {
+  public(): this {
     return this.on('public');
   }
-  private() {
+  private(): this {
     return this.on('private');
   }
 
-  noCache() {
+  noCache(): this {
     return this.on('no-cache');
   }
-  noStore() {
+  noStore(): this {
     return this.on('no-store');
   }
-  noTransform() {
+  noTransform(): this {
     return this.on('no-transform');
   }
 
-  maxAge(time: string) {
+  maxAge(time: string): this {
     return this.on('max-age', time).on('s-maxage', time);
   }
-  maxStale(time: string) {
+  maxStale(time: string): this {
     return this.on('max-stale', time);
   }
-  minFresh(time: string) {
+  minFresh(time: string): this {
     return this.on('min-fresh', time);
   }
 
-  mustRevalidate() {
+  mustRevalidate(): this {
     return this.on('must-revalidate');
   }
-  mustUnderstand() {
+  mustUnderstand(): this {
     return this.on('must-understand');
   }
 
-  immutable() {
+  immutable(): this {
     return this.on('immutable');
   }
-  staleWhileRevalidate() {
+  staleWhileRevalidate(): this {
     return this.on('stale-while-revalidate');
   }
-  staleIfError() {
+  staleIfError(): this {
     return this.on('stale-if-error');
   }
 
-  on(key = '', value: string | undefined = undefined) {
+  on(key = '', value: string | undefined = undefined): this {
     key = optCacheControlString(key);
     if (key.length === 0) return this;
 
@@ -65,10 +65,10 @@ export class CacheControl {
     return this;
   }
 
-  toString() {
-    if (!this.contents.length) return;
+  toString(): string {
+    if (!this.contents.length) return '';
 
-    return this.contents.reduce((str, config) => {
+    return this.contents.reduce((str: string, config) => {
       let { key, value } = config;
       value = value === undefined ? '' : `=${value}`;
       if (str.length) str = `${str}, `;

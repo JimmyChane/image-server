@@ -1,5 +1,13 @@
-import fs from 'fs';
-import path from 'path';
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readdirSync,
+  unlink,
+} from 'node:fs';
+import { basename, extname, join } from 'node:path';
 
 import { FileStorage, validateFilename } from './FileStorage';
 import { time } from './Status';
@@ -13,88 +21,88 @@ export class LocalFileStorage extends FileStorage {
     this.initialCheck();
   }
 
-  private initialCheck() {
+  private initialCheck(): void {
     try {
       const { absolutePath } = this.config;
-      const isExist = fs.existsSync(absolutePath);
-      const isDirectory = isExist && fs.lstatSync(absolutePath).isDirectory();
+      const isExist = existsSync(absolutePath);
+      const isDirectory = isExist && lstatSync(absolutePath).isDirectory();
 
       if (isDirectory) {
         time()
-          .title(path.basename(__filename, path.extname(__filename)))
+          .title(basename(__filename, extname(__filename)))
           .state('Directory')
           .message(this.config.absolutePath)
           .success();
         return;
       }
-      fs.mkdirSync(absolutePath, { recursive: false });
+      mkdirSync(absolutePath, { recursive: false });
       time()
-        .title(path.basename(__filename, path.extname(__filename)))
+        .title(basename(__filename, extname(__filename)))
         .state('Directory Created')
         .message(this.config.absolutePath)
         .success();
     } catch (error) {
       if (error instanceof Error) {
         time()
-          .title(path.basename(__filename, path.extname(__filename)))
+          .title(basename(__filename, extname(__filename)))
           .state('Error')
           .message(error.message)
           .error();
       } else {
         time()
-          .title(path.basename(__filename, path.extname(__filename)))
+          .title(basename(__filename, extname(__filename)))
           .state('Error')
           .message(error)
           .error();
       }
     }
   }
-  private asFilenamePath(filename: string) {
-    return path.join(this.config.absolutePath, filename);
+  private asFilenamePath(filename: string): string {
+    return join(this.config.absolutePath, filename);
   }
 
   // @override
-  async getFilenames() {
-    return fs.readdirSync(this.config.absolutePath).filter((filename) => {
-      let filePath = this.asFilenamePath(filename);
-      return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
+  async getFilenames(): Promise<string[]> {
+    return readdirSync(this.config.absolutePath).filter((filename) => {
+      const filePath = this.asFilenamePath(filename);
+      return existsSync(filePath) && lstatSync(filePath).isFile();
     });
   }
   // @override
-  async deleteFilename(filename: string) {
+  async deleteFilename(filename: string): Promise<unknown> {
     filename = validateFilename(filename);
-    let isFile = this.isFile(filename);
+    const isFile = this.isFile(filename);
     if (!isFile) return null;
-    let filePath = this.asFilenamePath(filename);
+    const filePath = this.asFilenamePath(filename);
     return await new Promise((resolve, reject) => {
-      fs.unlink(filePath, (error) => {
+      unlink(filePath, (error) => {
         if (error) reject(error);
         else resolve(filename);
       });
     });
   }
   // @override
-  async readStreamFilename(filename: string) {
+  async readStreamFilename(filename: string): Promise<import('fs').ReadStream> {
     filename = validateFilename(filename);
-    let isFile = this.isFile(filename);
+    const isFile = this.isFile(filename);
     if (!isFile) throw new Error('no such file');
-    let read = fs.createReadStream(this.asFilenamePath(filename));
+    const read = createReadStream(this.asFilenamePath(filename));
     return read;
   }
   // @override
-  async writeStreamFilename(filename: string) {
+  async writeStreamFilename(filename: string): Promise<import('fs').WriteStream> {
     filename = validateFilename(filename);
-    let isFile = this.isFile(filename);
+    const isFile = this.isFile(filename);
     if (isFile) throw new Error('file already exist');
-    let write = fs.createWriteStream(this.asFilenamePath(filename));
+    const write = createWriteStream(this.asFilenamePath(filename));
     return write;
   }
 
-  isFile(filename: string) {
-    let filePath = this.asFilenamePath(filename);
-    return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
+  isFile(filename: string): boolean {
+    const filePath = this.asFilenamePath(filename);
+    return existsSync(filePath) && lstatSync(filePath).isFile();
   }
-  getAbsolutePathOfFilename(filename: string) {
+  getAbsolutePathOfFilename(filename: string): string {
     return this.asFilenamePath(filename);
   }
 }

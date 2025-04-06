@@ -1,16 +1,16 @@
 import { blue, green, purple, red, yellow } from './ConsoleText';
 import { now } from './TimeBuilder';
 
-export function time() {
+export function time(): Status {
   return new Status().time();
 }
-export function title(text: string) {
+export function title(text: string): Status {
   return new Status().title(text);
 }
-export function state(text: string) {
+export function state(text: string): Status {
   return new Status().state(text);
 }
-export function message(text: string) {
+export function message(text: string): Status {
   return new Status().message(text);
 }
 
@@ -20,24 +20,24 @@ export class Status {
   private localState?: string = undefined;
   private localMessage?: string = undefined;
 
-  time() {
+  time(): this {
     this.localTime = now('-');
     return this;
   }
-  title(text: string) {
+  title(text: string): this {
     this.localTitle = text;
     return this;
   }
-  state(text: string) {
+  state(text: string): this {
     this.localState = text;
     return this;
   }
-  message(text: any) {
+  message(text: any): this {
     this.localMessage = text;
     return this;
   }
 
-  log() {
+  log(): void {
     const contents: string[] = [];
 
     if (this.localTime !== undefined) {
@@ -61,7 +61,7 @@ export class Status {
 
     console.log(str);
   }
-  success() {
+  success(): void {
     const contents: string[] = [];
 
     if (this.localTime !== undefined) {
@@ -85,7 +85,7 @@ export class Status {
 
     console.log(str);
   }
-  error() {
+  error(): void {
     const contents: string[] = [];
 
     if (this.localTime !== undefined) {

@@ -1,9 +1,9 @@
-function toTimeBuilderString(time: string | number) {
+function toTimeBuilderString(time: string | number): string {
   time = time.toString();
   return time.length == 1 ? `0${time}` : time;
 }
 
-export function getCurrent(separator = '') {
+export function getCurrent(separator = ''): string {
   const now = new Date();
 
   const year = now.getUTCFullYear();

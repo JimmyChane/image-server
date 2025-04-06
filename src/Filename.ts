@@ -1,4 +1,4 @@
-function filterName(name = '') {
+function filterName(name = ''): string {
   while (name.indexOf('.') === 0) {
     name = name.substring(1, name.length);
   }
@@ -28,10 +28,10 @@ export class Filename {
     this.ext = str.substring(lastIndexDot + 1, str.length);
   }
 
-  toString() {
+  toString(): string {
     return filterName(`${this.name}.${this.ext}`);
   }
-  replaceExt(ext = '') {
+  replaceExt(ext = ''): this {
     if (ext.length) {
       this.ext = ext;
     }

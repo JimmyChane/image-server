@@ -1,25 +1,25 @@
-export function black(text: string) {
+export function black(text: string): string {
   return new ConsoleText(text).black().toString();
 }
-export function red(text: string) {
+export function red(text: string): string {
   return new ConsoleText(text).red().toString();
 }
-export function green(text: string) {
+export function green(text: string): string {
   return new ConsoleText(text).green().toString();
 }
-export function yellow(text: string) {
+export function yellow(text: string): string {
   return new ConsoleText(text).yellow().toString();
 }
-export function blue(text: string) {
+export function blue(text: string): string {
   return new ConsoleText(text).blue().toString();
 }
-export function purple(text: string) {
+export function purple(text: string): string {
   return new ConsoleText(text).purple().toString();
 }
-export function cyan(text: string) {
+export function cyan(text: string): string {
   return new ConsoleText(text).cyan().toString();
 }
-export function white(text: string) {
+export function white(text: string): string {
   return new ConsoleText(text).white().toString();
 }
 
@@ -31,40 +31,40 @@ export class ConsoleText {
     this.text = text;
   }
 
-  black() {
+  black(): this {
     this.color = '\u001B[30m';
     return this;
   }
-  red() {
+  red(): this {
     this.color = '\u001B[31m';
     return this;
   }
-  green() {
+  green(): this {
     this.color = '\u001B[32m';
     return this;
   }
-  yellow() {
+  yellow(): this {
     this.color = '\u001B[33m';
     return this;
   }
-  blue() {
+  blue(): this {
     this.color = '\u001B[34m';
     return this;
   }
-  purple() {
+  purple(): this {
     this.color = '\u001B[35m';
     return this;
   }
-  cyan() {
+  cyan(): this {
     this.color = '\u001B[36m';
     return this;
   }
-  white() {
+  white(): this {
     this.color = '\u001B[37m';
     return this;
   }
 
-  toString() {
+  toString(): string {
     if (this.color === undefined) return `${this.text}`;
     return `${this.color}${this.text}${'\u001B[0m'}`;
   }

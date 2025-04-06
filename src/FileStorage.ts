@@ -1,29 +1,29 @@
-import { ReadStream, WriteStream } from 'fs';
+import { ReadStream, WriteStream } from 'node:fs';
 
-export function filenameStartsWiths(filename: string, ...characters: string[]) {
-  for (let character of characters) {
+export function filenameStartsWiths(filename: string, ...characters: string[]): string {
+  for (const character of characters) {
     if (filename.startsWith(character)) return character;
   }
   return '';
 }
-export function filenameIncludes(filename: string, ...characters: string[]) {
-  for (let character of characters) {
+export function filenameIncludes(filename: string, ...characters: string[]): string {
+  for (const character of characters) {
     if (filename.includes(character)) return character;
   }
   return '';
 }
-export function validateFilename(filename: string) {
+export function validateFilename(filename: string): string {
   if (typeof filename !== 'string') {
     throw new Error(`filename is not string, ${filename}`);
   }
 
-  let invalidStart = filenameStartsWiths(filename, ...['.', '/', '\\']);
+  const invalidStart = filenameStartsWiths(filename, ...['.', '/', '\\']);
   if (invalidStart) {
     throw new Error(`invalid filename format, ${filename}, ${invalidStart}`);
   }
 
-  let invalidCharacters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
-  let invalidChar = filenameIncludes(filename, ...invalidCharacters);
+  const invalidCharacters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
+  const invalidChar = filenameIncludes(filename, ...invalidCharacters);
   if (invalidChar) {
     throw new Error(`invalid filename character, ${filename}, ${invalidChar}`);
   }

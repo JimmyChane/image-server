@@ -12,7 +12,7 @@ export class Dimension {
     if (height > 0) this.height = height;
   }
 
-  isSet() {
+  isSet(): boolean {
     return this.width > 0 || this.height > 0;
   }
 }

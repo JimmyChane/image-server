@@ -1,44 +1,54 @@
-// https://sharp.pixelplumbing.com
-import sharp from 'sharp';
-import { Readable } from 'stream';
-
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Req,
+  Res,
+  UseInterceptors,
+} from '@nestjs/common';
+import { AppService } from './app.service';
+import { CacheControl } from './cache-control/CacheControl.decorator';
+import { Expires } from './expires/Expires.decorator';
+import { Request, Response } from 'express';
 import { Dimension } from './Dimension';
 import { Filename } from './Filename';
-import { ImageFormat, JPEG, JPG, List, PNG, WEBP, parseMimeTypeToExt } from './ImageFormat';
+import { ImageFormat, JPEG, JPG, List, parseMimeTypeToExt, PNG, WEBP } from './ImageFormat';
 import { LocalFileStorage } from './LocalFileStorage';
 import { TimeNowGetter } from './TimeNowGetter';
+import { Readable } from 'node:stream';
+import { join } from 'node:path';
+import { cwd } from 'node:process';
+import * as sharp from 'sharp';
 
-export class ImageStorage {
+@Controller()
+@CacheControl({ maxAge: 604_800, public: true })
+@Expires(604_800)
+export class AppController {
   private readonly timeNow = new TimeNowGetter();
-  private readonly storage: LocalFileStorage;
+  private readonly storage: LocalFileStorage; // todo: is undefined
 
-  use(
-    option = { cacheControl: '', expires: '' },
-  ): (request: any, response: any, next: any) => void {
-    return (request: any, response: any, next: any) => {
-      if (option.cacheControl.length) {
-        response.set('Cache-Control', option.cacheControl);
-      }
-      if (option.expires.length) {
-        response.set('Expires', option.expires);
-      }
-      this.requestImage(request, response, next);
-    };
+  constructor(private readonly appService: AppService) {
+    const pathBackground = join(cwd(), 'public');
+    this.storage = new LocalFileStorage(pathBackground);
   }
 
-  private async requestImage(request: any, response: any, next: any): Promise<void> {
-    if (request.method !== 'GET') {
-      next();
-      return;
-    }
-
-    const { path, query } = request;
-    const sizeQuery = { width: query.width, height: query.height };
+  @Get('*')
+  async getAny(@Req() request: Request, @Res() response: Response) {
+    const { query } = request;
+    const path = (() => {
+      if (request.path.startsWith('/')) {
+        return request.path.slice(1);
+      } else {
+        return request.path;
+      }
+    })();
+    const sizeQuery = { width: query['width'], height: query['height'] };
 
     const dimenReq = new Dimension(sizeQuery.width, sizeQuery.height);
     const filenameReq = new Filename(path);
 
-    // checking existing files
     const filenameSrc = await Promise.resolve().then(async () => {
       const filenameSrc = new Filename(path);
 
@@ -51,23 +61,11 @@ export class ImageStorage {
 
       return null;
     });
-    if (!filenameSrc) {
-      response.status(404);
-      response.write('no files found');
-      response.end();
-      return;
-    }
+    if (!filenameSrc) throw new NotFoundException('no files found');
 
     // checking supported format
-    const format = List.find((format) => {
-      return format.ext === filenameReq.ext;
-    });
-    if (!format) {
-      response.status(400);
-      response.write('format not support');
-      response.end();
-      return;
-    }
+    const format = List.find((format) => format.ext === filenameReq.ext);
+    if (!format) throw new BadRequestException('format not support');
 
     // prepare transformer
     const transformer = await Promise.resolve()
@@ -97,60 +95,49 @@ export class ImageStorage {
           dimenReq.height = dimenImg.height;
         }
 
+        if (dimenReq.width === 0) dimenReq.width = undefined;
+        if (dimenReq.height === 0) dimenReq.height = undefined;
+
         return sharp().resize(dimenReq);
       })
       // transform media type
-      .then((transformer) => {
+      .then((transformer): sharp.Sharp | null => {
         if (filenameReq.ext === filenameSrc.ext) return transformer;
 
-        const getTransformer = () => {
-          return transformer ? transformer : (transformer = sharp());
-        };
+        const newTransformer = (() => {
+          if (transformer) return transformer;
+
+          return sharp();
+        })();
 
         switch (filenameReq.ext) {
           case PNG.ext:
-            getTransformer().png();
+            newTransformer.png();
             break;
           case JPG.ext:
           case JPEG.ext:
-            getTransformer().jpeg();
+            newTransformer.jpeg();
             break;
           case WEBP.ext:
-            getTransformer().webp();
+            newTransformer.webp();
             break;
         }
 
-        return transformer;
+        return newTransformer;
       });
 
-    const getReadStream = async () => {
+    const readStream = await (async () => {
       const readStream = await this.storage?.readStreamFilename(filenameSrc.toString());
-      if (!transformer) {
-        return readStream;
-      }
+      if (!transformer) return readStream;
+
       return readStream.pipe(transformer);
-    };
-
-    try {
-      const readStream = await getReadStream();
-      readStream.on('data', (chunk: any) => response.write(chunk));
-      readStream.on('end', () => response.end());
-      readStream.on('error', (error: any) => {
-        response.status(500);
-        response.write('read fail');
-        response.end();
-        console.error(error);
-      });
-    } catch (error) {
-      response.status(500);
-      response.write('read fail');
-      response.end();
+    })();
+    readStream.on('data', (chunk: any) => response.write(chunk));
+    readStream.on('end', () => response.end());
+    readStream.on('error', (error: any) => {
       console.error(error);
-    }
-  }
-
-  constructor(storage: LocalFileStorage) {
-    this.storage = storage;
+      throw new InternalServerErrorException('read fail');
+    });
   }
 
   isLocalFileStorage(): boolean {
@@ -197,7 +184,7 @@ export class ImageStorage {
     }
     return formats;
   }
-  private async isFile(filename = '') {
+  private async isFile(filename = ''): Promise<unknown> {
     const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
@@ -262,7 +249,12 @@ export class ImageStorage {
       };
     });
   }
-  async addImageByTemps(temps: any = [], deleteTempAfter = false) {
+  async addImageByTemps(
+    temps: any = [],
+    deleteTempAfter = false,
+  ): Promise<
+    { filename: string; isSuccess: boolean }[] | { filename: undefined; isSuccess: boolean }
+  > {
     const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 

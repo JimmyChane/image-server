@@ -1,16 +1,13 @@
 export class ImageFormat {
-  mimetype: any;
-  ext: any;
+  constructor(
+    readonly mimetype: string,
+    readonly ext: string,
+  ) {}
 
-  constructor(mimetype: string, ext: string) {
-    this.mimetype = mimetype;
-    this.ext = ext;
-  }
-
-  isSameMimetype(mimetype: string) {
+  isSameMimetype(mimetype: string): boolean {
     return this.mimetype === mimetype;
   }
-  isSameExt(ext: string) {
+  isSameExt(ext: string): boolean {
     return this.ext === ext;
   }
 }
@@ -22,7 +19,7 @@ export const JPEG = new ImageFormat('image/jpeg', 'jpeg');
 
 export const List = [WEBP, PNG, JPG, JPEG];
 
-export function parseMimeTypeToExt(mimetype: string) {
+export function parseMimeTypeToExt(mimetype: string): string {
   for (const format of List) {
     if (format.isSameMimetype(mimetype)) return format.ext;
   }
