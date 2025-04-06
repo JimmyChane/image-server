@@ -7,13 +7,13 @@ import https from 'https';
 import path from 'path';
 
 // tool
-import CacheControl from './CacheControl';
-import ENV from './ENV';
-import ImageStorage from './ImageStorage';
-import LocalFileStorage from './LocalFileStorage';
+import { CacheControl } from './CacheControl';
+import { isProduction } from './ENV';
+import { ImageStorage } from './ImageStorage';
+import { LocalFileStorage } from './LocalFileStorage';
 
 // config
-const port = ENV.isProduction() ? 83 : 81;
+const port = isProduction() ? 83 : 81;
 const pathBackground = path.join(__dirname, '../public');
 const expires = '604800';
 const cacheControl = new CacheControl().maxAge(expires).public().toString();
@@ -29,7 +29,7 @@ app.use(imageStorage.use({ cacheControl: cacheControl.toString(), expires }));
 
 // server
 const createServer = () => {
-  if (ENV.isProduction()) {
+  if (isProduction()) {
     const pathPrivateKey = path.join(__dirname, '../ssl/privkey.pem');
     const pathCertKey = path.join(__dirname, '../ssl/cert.pem');
 

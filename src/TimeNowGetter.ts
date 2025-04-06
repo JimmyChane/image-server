@@ -1,12 +1,12 @@
-export default class TimeNowGetter {
-  #last = 0;
+export class TimeNowGetter {
+  private last = 0;
 
   get() {
     let now = Date.now();
 
-    while (this.#last >= now) now++;
+    while (this.last >= now) now++;
 
-    this.#last = now;
+    this.last = now;
     return now;
   }
 }

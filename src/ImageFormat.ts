@@ -1,30 +1,30 @@
-export default class ImageFormat {
-  static WEBP = new ImageFormat('image/webp', 'webp');
-  static PNG = new ImageFormat('image/png', 'png');
-  static JPG = new ImageFormat('image/jpg', 'jpg');
-  static JPEG = new ImageFormat('image/jpeg', 'jpeg');
-
-  static List = [ImageFormat.WEBP, ImageFormat.PNG, ImageFormat.JPG, ImageFormat.JPEG];
-
-  static parseMimeTypeToExt(mimetype) {
-    for (const format of ImageFormat.List) {
-      if (format.isSameMimetype(mimetype)) return format.ext;
-    }
-    throw new Error('file type not supported');
-  }
-
+export class ImageFormat {
   mimetype: any;
   ext: any;
 
-  constructor(mimetype, ext) {
+  constructor(mimetype: string, ext: string) {
     this.mimetype = mimetype;
     this.ext = ext;
   }
 
-  isSameMimetype(mimetype) {
+  isSameMimetype(mimetype: string) {
     return this.mimetype === mimetype;
   }
-  isSameExt(ext) {
+  isSameExt(ext: string) {
     return this.ext === ext;
   }
+}
+
+export const WEBP = new ImageFormat('image/webp', 'webp');
+export const PNG = new ImageFormat('image/png', 'png');
+export const JPG = new ImageFormat('image/jpg', 'jpg');
+export const JPEG = new ImageFormat('image/jpeg', 'jpeg');
+
+export const List = [WEBP, PNG, JPG, JPEG];
+
+export function parseMimeTypeToExt(mimetype: string) {
+  for (const format of List) {
+    if (format.isSameMimetype(mimetype)) return format.ext;
+  }
+  throw new Error('file type not supported');
 }

@@ -1,4 +1,4 @@
-export default class Dimension {
+export class Dimension {
   width: any = 0;
   height: any = 0;
 

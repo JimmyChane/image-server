@@ -1,26 +1,26 @@
 import fs from 'fs';
 import path from 'path';
 
-import FileStorage from './FileStorage';
-import Status from './Status';
+import { FileStorage, validateFilename } from './FileStorage';
+import { time } from './Status';
 
-export default class LocalFileStorage extends FileStorage {
+export class LocalFileStorage extends FileStorage {
   config: { absolutePath: string };
 
   constructor(absolutePath = '') {
     super();
     this.config = { absolutePath };
-    this.#initialCheck();
+    this.initialCheck();
   }
 
-  #initialCheck() {
+  private initialCheck() {
     try {
       const { absolutePath } = this.config;
       const isExist = fs.existsSync(absolutePath);
       const isDirectory = isExist && fs.lstatSync(absolutePath).isDirectory();
 
       if (isDirectory) {
-        Status.time()
+        time()
           .title(path.basename(__filename, path.extname(__filename)))
           .state('Directory')
           .message(this.config.absolutePath)
@@ -28,20 +28,20 @@ export default class LocalFileStorage extends FileStorage {
         return;
       }
       fs.mkdirSync(absolutePath, { recursive: false });
-      Status.time()
+      time()
         .title(path.basename(__filename, path.extname(__filename)))
         .state('Directory Created')
         .message(this.config.absolutePath)
         .success();
     } catch (error) {
       if (error instanceof Error) {
-        Status.time()
+        time()
           .title(path.basename(__filename, path.extname(__filename)))
           .state('Error')
           .message(error.message)
           .error();
       } else {
-        Status.time()
+        time()
           .title(path.basename(__filename, path.extname(__filename)))
           .state('Error')
           .message(error)
@@ -49,23 +49,23 @@ export default class LocalFileStorage extends FileStorage {
       }
     }
   }
-  #asFilenamePath(filename) {
+  private asFilenamePath(filename: string) {
     return path.join(this.config.absolutePath, filename);
   }
 
   // @override
   async getFilenames() {
     return fs.readdirSync(this.config.absolutePath).filter((filename) => {
-      let filePath = this.#asFilenamePath(filename);
+      let filePath = this.asFilenamePath(filename);
       return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
     });
   }
   // @override
-  async deleteFilename(filename) {
-    filename = LocalFileStorage.validateFilename(filename);
+  async deleteFilename(filename: string) {
+    filename = validateFilename(filename);
     let isFile = this.isFile(filename);
     if (!isFile) return null;
-    let filePath = this.#asFilenamePath(filename);
+    let filePath = this.asFilenamePath(filename);
     return await new Promise((resolve, reject) => {
       fs.unlink(filePath, (error) => {
         if (error) reject(error);
@@ -74,27 +74,27 @@ export default class LocalFileStorage extends FileStorage {
     });
   }
   // @override
-  async readStreamFilename(filename) {
-    filename = LocalFileStorage.validateFilename(filename);
+  async readStreamFilename(filename: string) {
+    filename = validateFilename(filename);
     let isFile = this.isFile(filename);
     if (!isFile) throw new Error('no such file');
-    let read = fs.createReadStream(this.#asFilenamePath(filename));
+    let read = fs.createReadStream(this.asFilenamePath(filename));
     return read;
   }
   // @override
-  async writeStreamFilename(filename) {
-    filename = LocalFileStorage.validateFilename(filename);
+  async writeStreamFilename(filename: string) {
+    filename = validateFilename(filename);
     let isFile = this.isFile(filename);
     if (isFile) throw new Error('file already exist');
-    let write = fs.createWriteStream(this.#asFilenamePath(filename));
+    let write = fs.createWriteStream(this.asFilenamePath(filename));
     return write;
   }
 
-  isFile(filename) {
-    let filePath = this.#asFilenamePath(filename);
+  isFile(filename: string) {
+    let filePath = this.asFilenamePath(filename);
     return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
   }
-  getAbsolutePathOfFilename(filename) {
-    return this.#asFilenamePath(filename);
+  getAbsolutePathOfFilename(filename: string) {
+    return this.asFilenamePath(filename);
   }
 }

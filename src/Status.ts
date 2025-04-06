@@ -1,58 +1,58 @@
-import ConsoleText from './ConsoleText';
-import TimeBuilder from './TimeBuilder';
+import { blue, green, purple, red, yellow } from './ConsoleText';
+import { now } from './TimeBuilder';
 
-export default class Status {
-  static time() {
-    return new Status().time();
-  }
-  static title(text) {
-    return new Status().title(text);
-  }
-  static state(text) {
-    return new Status().state(text);
-  }
-  static message(text) {
-    return new Status().message(text);
-  }
+export function time() {
+  return new Status().time();
+}
+export function title(text: string) {
+  return new Status().title(text);
+}
+export function state(text: string) {
+  return new Status().state(text);
+}
+export function message(text: string) {
+  return new Status().message(text);
+}
 
-  #time: string | undefined = undefined;
-  #title = undefined;
-  #state = undefined;
-  #message = undefined;
+export class Status {
+  private localTime: string | undefined = undefined;
+  private localTitle?: string = undefined;
+  private localState?: string = undefined;
+  private localMessage?: string = undefined;
 
   time() {
-    this.#time = TimeBuilder.now('-');
+    this.localTime = now('-');
     return this;
   }
-  title(text) {
-    this.#title = text;
+  title(text: string) {
+    this.localTitle = text;
     return this;
   }
-  state(text) {
-    this.#state = text;
+  state(text: string) {
+    this.localState = text;
     return this;
   }
-  message(text) {
-    this.#message = text;
+  message(text: any) {
+    this.localMessage = text;
     return this;
   }
 
   log() {
     const contents: string[] = [];
 
-    if (this.#time !== undefined) {
-      contents.push(ConsoleText.purple(this.#time));
+    if (this.localTime !== undefined) {
+      contents.push(purple(this.localTime));
     }
 
-    if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.yellow(this.#state)})`);
-    } else if (this.#title !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)})`);
-    } else if (this.#state !== undefined) {
-      contents.push(`(${ConsoleText.yellow(this.#state)})`);
+    if (this.localTitle !== undefined && this.localState !== undefined) {
+      contents.push(`(${blue(this.localTitle)}: ${yellow(this.localState)})`);
+    } else if (this.localTitle !== undefined) {
+      contents.push(`(${blue(this.localTitle)})`);
+    } else if (this.localState !== undefined) {
+      contents.push(`(${yellow(this.localState)})`);
     }
 
-    if (this.#message !== undefined) contents.push(this.#message);
+    if (this.localMessage !== undefined) contents.push(this.localMessage);
 
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;
@@ -64,19 +64,19 @@ export default class Status {
   success() {
     const contents: string[] = [];
 
-    if (this.#time !== undefined) {
-      contents.push(ConsoleText.purple(this.#time));
+    if (this.localTime !== undefined) {
+      contents.push(purple(this.localTime));
     }
 
-    if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.green(this.#state)})`);
-    } else if (this.#title !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)})`);
-    } else if (this.#state !== undefined) {
-      contents.push(`(${ConsoleText.green(this.#state)})`);
+    if (this.localTitle !== undefined && this.localState !== undefined) {
+      contents.push(`(${blue(this.localTitle)}: ${green(this.localState)})`);
+    } else if (this.localTitle !== undefined) {
+      contents.push(`(${blue(this.localTitle)})`);
+    } else if (this.localState !== undefined) {
+      contents.push(`(${green(this.localState)})`);
     }
 
-    if (this.#message !== undefined) contents.push(this.#message);
+    if (this.localMessage !== undefined) contents.push(this.localMessage);
 
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;
@@ -88,19 +88,19 @@ export default class Status {
   error() {
     const contents: string[] = [];
 
-    if (this.#time !== undefined) {
-      contents.push(ConsoleText.purple(this.#time));
+    if (this.localTime !== undefined) {
+      contents.push(purple(this.localTime));
     }
 
-    if (this.#title !== undefined && this.#state !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)}: ${ConsoleText.red(this.#state)})`);
-    } else if (this.#title !== undefined) {
-      contents.push(`(${ConsoleText.blue(this.#title)})`);
-    } else if (this.#state !== undefined) {
-      contents.push(`(${ConsoleText.red(this.#state)})`);
+    if (this.localTitle !== undefined && this.localState !== undefined) {
+      contents.push(`(${blue(this.localTitle)}: ${red(this.localState)})`);
+    } else if (this.localTitle !== undefined) {
+      contents.push(`(${blue(this.localTitle)})`);
+    } else if (this.localState !== undefined) {
+      contents.push(`(${red(this.localState)})`);
     }
 
-    if (this.#message !== undefined) contents.push(this.#message);
+    if (this.localMessage !== undefined) contents.push(this.localMessage);
 
     const str = contents.reduce((str, content, index) => {
       if (index === 0) return `${content}`;

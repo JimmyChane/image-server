@@ -2,29 +2,29 @@
 import sharp from 'sharp';
 import { Readable } from 'stream';
 
-import Dimension from './Dimension';
-import Filename from './Filename';
-import ImageFormat from './ImageFormat';
-import LocalFileStorage from './LocalFileStorage';
-import TimeNowGetter from './TimeNowGetter';
+import { Dimension } from './Dimension';
+import { Filename } from './Filename';
+import { ImageFormat, JPEG, JPG, List, PNG, WEBP, parseMimeTypeToExt } from './ImageFormat';
+import { LocalFileStorage } from './LocalFileStorage';
+import { TimeNowGetter } from './TimeNowGetter';
 
-export default class ImageStorage {
-  readonly #timeNow = new TimeNowGetter();
-  readonly #storage: LocalFileStorage;
+export class ImageStorage {
+  private readonly timeNow = new TimeNowGetter();
+  private readonly storage: LocalFileStorage;
 
   use(option = { cacheControl: '', expires: '' }) {
-    return (request, response, next) => {
+    return (request: any, response: any, next: any) => {
       if (option.cacheControl.length) {
         response.set('Cache-Control', option.cacheControl);
       }
       if (option.expires.length) {
         response.set('Expires', option.expires);
       }
-      this.#requestImage(request, response, next);
+      this.requestImage(request, response, next);
     };
   }
 
-  async #requestImage(request, response, next) {
+  private async requestImage(request: any, response: any, next: any) {
     if (request.method !== 'GET') {
       next();
       return;
@@ -40,11 +40,12 @@ export default class ImageStorage {
     const filenameSrc = await Promise.resolve().then(async () => {
       const filenameSrc = new Filename(path);
 
-      const isFile = await this.#isFile(filenameSrc.toString());
+      const isFile = await this.isFile(filenameSrc.toString());
       if (isFile) return filenameSrc;
 
-      const formats = await this.#getFormatsByName(filenameReq.name);
-      if (formats.length) return new Filename(filenameReq.name, formats[0].ext);
+      const formats = await this.getFormatsByName(filenameReq.name);
+      const [format] = formats;
+      if (format) return new Filename(filenameReq.name, format.ext);
 
       return null;
     });
@@ -56,7 +57,7 @@ export default class ImageStorage {
     }
 
     // checking supported format
-    const format = ImageFormat.List.find((format) => {
+    const format = List.find((format) => {
       return format.ext === filenameReq.ext;
     });
     if (!format) {
@@ -72,7 +73,7 @@ export default class ImageStorage {
       .then(async () => {
         if (!dimenReq.isSet()) return null;
 
-        const dimenImg: any = await this.#getFileDimension(filenameSrc.toString());
+        const dimenImg: any = await this.getFileDimension(filenameSrc.toString());
 
         const isSameWidth = dimenReq.width === dimenImg.width;
         const isSameHeight = dimenReq.height === dimenImg.height;
@@ -105,14 +106,14 @@ export default class ImageStorage {
         };
 
         switch (filenameReq.ext) {
-          case ImageFormat.PNG.ext:
+          case PNG.ext:
             getTransformer().png();
             break;
-          case ImageFormat.JPG.ext:
-          case ImageFormat.JPEG.ext:
+          case JPG.ext:
+          case JPEG.ext:
             getTransformer().jpeg();
             break;
-          case ImageFormat.WEBP.ext:
+          case WEBP.ext:
             getTransformer().webp();
             break;
         }
@@ -121,7 +122,7 @@ export default class ImageStorage {
       });
 
     const getReadStream = async () => {
-      const readStream = await this.#storage?.readStreamFilename(filenameSrc.toString());
+      const readStream = await this.storage?.readStreamFilename(filenameSrc.toString());
       if (!transformer) {
         return readStream;
       }
@@ -130,9 +131,9 @@ export default class ImageStorage {
 
     try {
       const readStream = await getReadStream();
-      readStream.on('data', (chunk) => response.write(chunk));
+      readStream.on('data', (chunk: any) => response.write(chunk));
       readStream.on('end', () => response.end());
-      readStream.on('error', (error) => {
+      readStream.on('error', (error: any) => {
         response.status(500);
         response.write('read fail');
         response.end();
@@ -147,19 +148,19 @@ export default class ImageStorage {
   }
 
   constructor(storage: LocalFileStorage) {
-    this.#storage = storage;
+    this.storage = storage;
   }
 
   isLocalFileStorage() {
-    return this.#storage instanceof LocalFileStorage;
+    return this.storage instanceof LocalFileStorage;
   }
 
-  async #getFileDimension(filename = '') {
-    const storage = this.#storage;
+  private async getFileDimension(filename = '') {
+    const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
     const filenameObj = new Filename(filename);
-    if (this.#storage instanceof LocalFileStorage && filenameObj.ext !== ImageFormat.WEBP.ext) {
+    if (this.storage instanceof LocalFileStorage && filenameObj.ext !== WEBP.ext) {
       const absolutePath = storage.getAbsolutePathOfFilename(filenameObj.toString());
       const imageStream = sharp(absolutePath);
       const metadata = await imageStream.metadata();
@@ -185,20 +186,20 @@ export default class ImageStorage {
         .on('error', (error) => reject(error));
     });
   }
-  async #getFormatsByName(name = '') {
+  private async getFormatsByName(name = '') {
     const formats: ImageFormat[] = [];
-    for (const format of ImageFormat.List) {
+    for (const format of List) {
       const filename = new Filename(name, format.ext);
-      const isFile = await this.#isFile(filename.toString());
+      const isFile = await this.isFile(filename.toString());
       if (isFile) formats.push(format);
     }
     return formats;
   }
-  async #isFile(filename = '') {
-    const storage = this.#storage;
+  private async isFile(filename = '') {
+    const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
-    if (this.isLocalFileStorage()) return this.#storage?.isFile(filename);
+    if (this.isLocalFileStorage()) return this.storage?.isFile(filename);
     return await new Promise(async (resolve, reject) => {
       let isFile = false;
 
@@ -211,12 +212,12 @@ export default class ImageStorage {
   }
 
   async getImageFilenames() {
-    return await this.#storage?.getFilenames();
+    return await this.storage?.getFilenames();
   }
 
   async deleteImageByFilename(filename = '') {
     try {
-      await this.#storage?.deleteFilename(filename);
+      await this.storage?.deleteFilename(filename);
       return filename;
     } catch (error) {
       throw new Error('cannot delete file');
@@ -224,17 +225,13 @@ export default class ImageStorage {
   }
 
   async addImageByFiles(files: any[] = []) {
-    const storage = this.#storage;
+    const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
     if (!files.length) throw new Error('empty files');
 
     const contextFiles = files.map((file) => {
-      return {
-        file,
-        name: this.#timeNow.get(),
-        ext: ImageFormat.parseMimeTypeToExt(file.mimetype),
-      };
+      return { file, name: this.timeNow.get(), ext: parseMimeTypeToExt(file.mimetype) };
     });
     const promiseFiles = contextFiles.map((parse) => {
       const { file, name, ext } = parse;
@@ -259,7 +256,7 @@ export default class ImageStorage {
     });
   }
   async addImageByTemps(temps: any = [], deleteTempAfter = false) {
-    const storage = this.#storage;
+    const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
     if (!temps.length) throw new Error('empty temps');
@@ -269,7 +266,7 @@ export default class ImageStorage {
     for (const temp of temps) {
       const { name, timeout, expiry } = temp;
       const filename = new Filename(name);
-      filename.name = `${this.#timeNow.get()}`;
+      filename.name = `${this.timeNow.get()}`;
 
       const filenamePromise = new Promise(async (resolve, reject) => {
         const reader = await temp.readStream();
@@ -287,7 +284,7 @@ export default class ImageStorage {
         }
 
         if (deleteTempAfter) {
-          await temp.delete().catch((error) => {});
+          await temp.delete().catch((error: any) => {});
         }
 
         results.push({ filename: filename.toString(), isSuccess: true });
