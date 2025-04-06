@@ -4,5 +4,7 @@
   "singleQuote": true,
   "printWidth": 100,
   "trailingComma": "all",
-  "objectWrap": "collapse"
+  "objectWrap": "collapse",
+
+  "plugins": ["prettier-plugin-organize-imports"]
 }

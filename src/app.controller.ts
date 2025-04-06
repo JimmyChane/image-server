@@ -6,21 +6,20 @@ import {
   NotFoundException,
   Req,
   Res,
-  UseInterceptors,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { join } from 'node:path';
+import { cwd } from 'node:process';
+import { Readable } from 'node:stream';
+import * as sharp from 'sharp';
 import { AppService } from './app.service';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
-import { Request, Response } from 'express';
-import { Dimension } from './Dimension';
-import { Filename } from './Filename';
-import { ImageFormat, JPEG, JPG, List, parseMimeTypeToExt, PNG, WEBP } from './ImageFormat';
-import { LocalFileStorage } from './LocalFileStorage';
-import { TimeNowGetter } from './TimeNowGetter';
-import { Readable } from 'node:stream';
-import { join } from 'node:path';
-import { cwd } from 'node:process';
-import * as sharp from 'sharp';
+import { Dimension } from './old/Dimension';
+import { Filename } from './old/Filename';
+import { ImageFormat, JPEG, JPG, List, parseMimeTypeToExt, PNG, WEBP } from './old/ImageFormat';
+import { LocalFileStorage } from './old/LocalFileStorage';
+import { TimeNowGetter } from './old/TimeNowGetter';
 
 @Controller()
 @CacheControl({ maxAge: 604_800, public: true })

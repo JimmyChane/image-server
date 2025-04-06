@@ -1,8 +1,8 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Response } from 'express';
-import { Reflector } from '@nestjs/core';
 
 export const CACHE_CONTROL_METADATA_KEY = 'cache-control';
 

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'process';
 import { AppModule } from './app.module';
-import { isProduction } from './ENV';
+import { isProduction } from './old/ENV';
 
 async function bootstrap() {
   const httpsOptions = (() => {
