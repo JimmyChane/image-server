@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { CorsOptions } from 'cors';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'process';
@@ -24,11 +25,9 @@ async function bootstrap() {
 
   const allowedOrigins: string[] = [];
 
-  app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
+  // todo: test cors
+  const corsOption: CorsOptions = {
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
@@ -36,9 +35,10 @@ async function bootstrap() {
 
       callback(new Error('Not allowed by CORS'));
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     credentials: true,
-  });
+  };
+  app.enableCors(corsOption);
 
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);

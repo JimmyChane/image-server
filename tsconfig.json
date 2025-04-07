@@ -12,18 +12,20 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
-    "strictBindCallApply": true,
-    "noFallthroughCasesInSwitch": true,
 
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitOverride": true,
 
-    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
 
     "paths": { "@/*": ["./src/*"] }

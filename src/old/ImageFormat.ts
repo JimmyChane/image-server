@@ -12,12 +12,12 @@ export class ImageFormat {
   }
 }
 
-export const WEBP = new ImageFormat('image/webp', 'webp');
-export const PNG = new ImageFormat('image/png', 'png');
-export const JPG = new ImageFormat('image/jpg', 'jpg');
-export const JPEG = new ImageFormat('image/jpeg', 'jpeg');
+export const WEBP_IMAGE_FORMAT = new ImageFormat('image/webp', 'webp');
+export const PNG_IMAGE_FORMAT = new ImageFormat('image/png', 'png');
+export const JPG_IMAGE_FORMAT = new ImageFormat('image/jpg', 'jpg');
+export const JPEG_IMAGE_FORMAT = new ImageFormat('image/jpeg', 'jpeg');
 
-export const List = [WEBP, PNG, JPG, JPEG];
+export const List = [WEBP_IMAGE_FORMAT, PNG_IMAGE_FORMAT, JPG_IMAGE_FORMAT, JPEG_IMAGE_FORMAT];
 
 export function parseMimeTypeToExt(mimetype: string): string {
   for (const format of List) {

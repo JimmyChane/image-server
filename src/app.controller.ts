@@ -10,32 +10,34 @@ import {
 import { Request, Response } from 'express';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
-import { Readable } from 'node:stream';
 import * as sharp from 'sharp';
 import { AppService } from './app.service';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
 import { Dimension } from './old/Dimension';
 import { Filename } from './old/Filename';
-import { ImageFormat, JPEG, JPG, List, parseMimeTypeToExt, PNG, WEBP } from './old/ImageFormat';
+import {
+  ImageFormat,
+  JPEG_IMAGE_FORMAT,
+  JPG_IMAGE_FORMAT,
+  List,
+  PNG_IMAGE_FORMAT,
+  WEBP_IMAGE_FORMAT,
+} from './old/ImageFormat';
 import { LocalFileStorage } from './old/LocalFileStorage';
-import { TimeNowGetter } from './old/TimeNowGetter';
 
 @Controller()
 @CacheControl({ maxAge: 604_800, public: true })
 @Expires(604_800)
 export class AppController {
-  private readonly timeNow = new TimeNowGetter();
-  private readonly storage: LocalFileStorage; // todo: is undefined
+  private readonly PUBLIC_DIR = join(cwd(), 'public');
 
-  constructor(private readonly appService: AppService) {
-    const pathBackground = join(cwd(), 'public');
-    this.storage = new LocalFileStorage(pathBackground);
-  }
+  private readonly storage = new LocalFileStorage(this.PUBLIC_DIR);
+
+  constructor(private readonly appService: AppService) {}
 
   @Get('*')
-  async getAny(@Req() request: Request, @Res() response: Response) {
-    const { query } = request;
+  async getAny(@Req() request: Request, @Res() response: Response): Promise<void> {
     const path = (() => {
       if (request.path.startsWith('/')) {
         return request.path.slice(1);
@@ -43,7 +45,7 @@ export class AppController {
         return request.path;
       }
     })();
-    const sizeQuery = { width: query['width'], height: query['height'] };
+    const sizeQuery = { width: request.query['width'], height: request.query['height'] };
 
     const dimenReq = new Dimension(sizeQuery.width, sizeQuery.height);
     const filenameReq = new Filename(path);
@@ -110,14 +112,14 @@ export class AppController {
         })();
 
         switch (filenameReq.ext) {
-          case PNG.ext:
+          case PNG_IMAGE_FORMAT.ext:
             newTransformer.png();
             break;
-          case JPG.ext:
-          case JPEG.ext:
+          case JPG_IMAGE_FORMAT.ext:
+          case JPEG_IMAGE_FORMAT.ext:
             newTransformer.jpeg();
             break;
-          case WEBP.ext:
+          case WEBP_IMAGE_FORMAT.ext:
             newTransformer.webp();
             break;
         }
@@ -143,12 +145,12 @@ export class AppController {
     return this.storage instanceof LocalFileStorage;
   }
 
-  private async getFileDimension(filename = ''): Promise<unknown> {
+  private async getFileDimension(filename: string = ''): Promise<unknown> {
     const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
     const filenameObj = new Filename(filename);
-    if (this.storage instanceof LocalFileStorage && filenameObj.ext !== WEBP.ext) {
+    if (this.storage instanceof LocalFileStorage && filenameObj.ext !== WEBP_IMAGE_FORMAT.ext) {
       const absolutePath = storage.getAbsolutePathOfFilename(filenameObj.toString());
       const imageStream = sharp(absolutePath);
       const metadata = await imageStream.metadata();
@@ -174,7 +176,7 @@ export class AppController {
         .on('error', (error) => reject(error));
     });
   }
-  private async getFormatsByName(name = ''): Promise<ImageFormat[]> {
+  private async getFormatsByName(name: string = ''): Promise<ImageFormat[]> {
     const formats: ImageFormat[] = [];
     for (const format of List) {
       const filename = new Filename(name, format.ext);
@@ -183,7 +185,7 @@ export class AppController {
     }
     return formats;
   }
-  private async isFile(filename = ''): Promise<unknown> {
+  private async isFile(filename: string = ''): Promise<unknown> {
     const storage = this.storage;
     if (!storage) return { filename: undefined, isSuccess: false };
 
@@ -197,100 +199,5 @@ export class AppController {
       stream.on('end', () => resolve(isFile));
       stream.on('error', (error) => resolve(false));
     });
-  }
-
-  async getImageFilenames(): Promise<string[]> {
-    return await this.storage?.getFilenames();
-  }
-
-  async deleteImageByFilename(filename = ''): Promise<string> {
-    try {
-      await this.storage?.deleteFilename(filename);
-      return filename;
-    } catch (error) {
-      throw new Error('cannot delete file');
-    }
-  }
-
-  async addImageByFiles(
-    files: any[] = [],
-  ): Promise<
-    | { filename: string | undefined; isSuccess: boolean }[]
-    | { filename: undefined; isSuccess: boolean }
-  > {
-    const storage = this.storage;
-    if (!storage) return { filename: undefined, isSuccess: false };
-
-    if (!files.length) throw new Error('empty files');
-
-    const contextFiles = files.map((file) => {
-      return { file, name: this.timeNow.get(), ext: parseMimeTypeToExt(file.mimetype) };
-    });
-    const promiseFiles = contextFiles.map((parse) => {
-      const { file, name, ext } = parse;
-      const filename = `${name}.${ext}`;
-
-      return new Promise<string>(async (resolve) => {
-        const write = await storage.writeStreamFilename(filename);
-        write.on('finish', () => resolve(filename));
-
-        const read = new Readable();
-        read.pipe(write);
-        read.push(file.data);
-        read.push(null);
-      });
-    });
-    const resultFiles = await Promise.allSettled(promiseFiles);
-    return resultFiles.map((result) => {
-      return {
-        filename: result.status === 'fulfilled' ? result.value : undefined,
-        isSuccess: result.status === 'fulfilled',
-      };
-    });
-  }
-  async addImageByTemps(
-    temps: any = [],
-    deleteTempAfter = false,
-  ): Promise<
-    { filename: string; isSuccess: boolean }[] | { filename: undefined; isSuccess: boolean }
-  > {
-    const storage = this.storage;
-    if (!storage) return { filename: undefined, isSuccess: false };
-
-    if (!temps.length) throw new Error('empty temps');
-
-    const RESULT_OK = 'ok';
-    const results: { filename: string; isSuccess: boolean }[] = [];
-    for (const temp of temps) {
-      const { name, timeout, expiry } = temp;
-      const filename = new Filename(name);
-      filename.name = `${this.timeNow.get()}`;
-
-      const filenamePromise = new Promise(async (resolve, reject) => {
-        const reader = await temp.readStream();
-        const writer = await storage.writeStreamFilename(filename.toString());
-        writer.on('close', () => resolve(RESULT_OK));
-        writer.on('error', (error) => reject(error));
-        reader.pipe(writer);
-      });
-
-      try {
-        const result = await filenamePromise;
-
-        if (result !== RESULT_OK) {
-          throw new Error('error copying image temp');
-        }
-
-        if (deleteTempAfter) {
-          await temp.delete().catch((error: any) => {});
-        }
-
-        results.push({ filename: filename.toString(), isSuccess: true });
-      } catch (error) {
-        results.push({ filename: filename.toString(), isSuccess: false });
-      }
-    }
-
-    return results;
   }
 }
