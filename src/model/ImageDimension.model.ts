@@ -1,4 +1,4 @@
-export class Dimension {
+export class ImageDimensionModel {
   width: any = 0;
   height: any = 0;
 

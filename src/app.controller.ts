@@ -1,3 +1,4 @@
+import { LocalFileService } from '@app/local-file';
 import {
   BadRequestException,
   Controller,
@@ -14,17 +15,16 @@ import * as sharp from 'sharp';
 import { AppService } from './app.service';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
-import { Dimension } from './old/Dimension';
-import { Filename } from './old/Filename';
+import { FilenameModel } from './model/Filename.model';
+import { ImageDimensionModel } from './model/ImageDimension.model';
 import {
-  ImageFormat,
+  ImageFormatModel,
   JPEG_IMAGE_FORMAT,
   JPG_IMAGE_FORMAT,
   List,
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
-} from './old/ImageFormat';
-import { LocalFileStorage } from './old/LocalFileStorage';
+} from './model/ImageFormat.model';
 
 @Controller()
 @CacheControl({ maxAge: 604_800, public: true })
@@ -32,9 +32,10 @@ import { LocalFileStorage } from './old/LocalFileStorage';
 export class AppController {
   private readonly PUBLIC_DIR = join(cwd(), 'public');
 
-  private readonly storage = new LocalFileStorage(this.PUBLIC_DIR);
-
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly localFileService: LocalFileService,
+  ) {}
 
   @Get('*')
   async getAny(@Req() request: Request, @Res() response: Response): Promise<void> {
@@ -47,18 +48,18 @@ export class AppController {
     })();
     const sizeQuery = { width: request.query['width'], height: request.query['height'] };
 
-    const dimenReq = new Dimension(sizeQuery.width, sizeQuery.height);
-    const filenameReq = new Filename(path);
+    const dimenReq = new ImageDimensionModel(sizeQuery.width, sizeQuery.height);
+    const filenameReq = new FilenameModel(path);
 
     const filenameSrc = await Promise.resolve().then(async () => {
-      const filenameSrc = new Filename(path);
+      const filenameSrc = new FilenameModel(path);
 
       const isFile = await this.isFile(filenameSrc.toString());
       if (isFile) return filenameSrc;
 
       const formats = await this.getFormatsByName(filenameReq.name);
       const [format] = formats;
-      if (format) return new Filename(filenameReq.name, format.ext);
+      if (format) return new FilenameModel(filenameReq.name, format.ext);
 
       return null;
     });
@@ -128,7 +129,7 @@ export class AppController {
       });
 
     const readStream = await (async () => {
-      const readStream = await this.storage?.readStreamFilename(filenameSrc.toString());
+      const readStream = await this.localFileService.readStreamFilename(filenameSrc.toString());
       if (!transformer) return readStream;
 
       return readStream.pipe(transformer);
@@ -141,16 +142,15 @@ export class AppController {
     });
   }
 
-  isLocalFileStorage(): boolean {
-    return this.storage instanceof LocalFileStorage;
-  }
-
   private async getFileDimension(filename: string = ''): Promise<unknown> {
-    const storage = this.storage;
+    const storage = this.localFileService;
     if (!storage) return { filename: undefined, isSuccess: false };
 
-    const filenameObj = new Filename(filename);
-    if (this.storage instanceof LocalFileStorage && filenameObj.ext !== WEBP_IMAGE_FORMAT.ext) {
+    const filenameObj = new FilenameModel(filename);
+    if (
+      this.localFileService instanceof LocalFileService &&
+      filenameObj.ext !== WEBP_IMAGE_FORMAT.ext
+    ) {
       const absolutePath = storage.getAbsolutePathOfFilename(filenameObj.toString());
       const imageStream = sharp(absolutePath);
       const metadata = await imageStream.metadata();
@@ -176,20 +176,23 @@ export class AppController {
         .on('error', (error) => reject(error));
     });
   }
-  private async getFormatsByName(name: string = ''): Promise<ImageFormat[]> {
-    const formats: ImageFormat[] = [];
+  private async getFormatsByName(name: string = ''): Promise<ImageFormatModel[]> {
+    const formats: ImageFormatModel[] = [];
     for (const format of List) {
-      const filename = new Filename(name, format.ext);
+      const filename = new FilenameModel(name, format.ext);
       const isFile = await this.isFile(filename.toString());
       if (isFile) formats.push(format);
     }
     return formats;
   }
   private async isFile(filename: string = ''): Promise<unknown> {
-    const storage = this.storage;
+    const storage = this.localFileService;
     if (!storage) return { filename: undefined, isSuccess: false };
 
-    if (this.isLocalFileStorage()) return this.storage?.isFile(filename);
+    if (this.localFileService instanceof LocalFileService) {
+      return this.localFileService?.isFile(filename);
+    }
+
     return await new Promise(async (resolve, reject) => {
       let isFile = false;
 

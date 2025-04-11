@@ -13,21 +13,21 @@
     "incremental": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
     "strict": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
-
     "noImplicitAny": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
-
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"],
+      "@app/local-file": ["libs/local-file/src"],
+      "@app/local-file/*": ["libs/local-file/src/*"]
+    }
   }
 }

@@ -8,7 +8,7 @@ function filterName(name = ''): string {
   return name;
 }
 
-export class Filename {
+export class FilenameModel {
   name = '';
   ext = '';
 
