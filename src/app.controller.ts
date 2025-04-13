@@ -1,206 +1,32 @@
-import { LocalFileService } from '@app/local-file';
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  InternalServerErrorException,
-  NotFoundException,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { join } from 'node:path';
-import { cwd } from 'node:process';
-import * as sharp from 'sharp';
 import { AppService } from './app.service';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
-import { FilenameModel } from './model/Filename.model';
-import { ImageDimensionModel } from './model/ImageDimension.model';
-import {
-  ImageFormatModel,
-  JPEG_IMAGE_FORMAT,
-  JPG_IMAGE_FORMAT,
-  List,
-  PNG_IMAGE_FORMAT,
-  WEBP_IMAGE_FORMAT,
-} from './model/ImageFormat.model';
 
 @Controller()
 @CacheControl({ maxAge: 604_800, public: true })
 @Expires(604_800)
 export class AppController {
-  private readonly PUBLIC_DIR = join(cwd(), 'public');
+  constructor(private readonly appService: AppService) {}
 
-  constructor(
-    private readonly appService: AppService,
-    private readonly localFileService: LocalFileService,
-  ) {}
+  @Get('public/*path')
+  async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
+    const paths = request.path.split('/');
+    const name = paths.at(-1);
+    if (typeof name !== 'string') throw new NotFoundException();
 
-  @Get('*')
-  async getAny(@Req() request: Request, @Res() response: Response): Promise<void> {
-    const path = (() => {
-      if (request.path.startsWith('/')) {
-        return request.path.slice(1);
-      } else {
-        return request.path;
-      }
-    })();
-    const sizeQuery = { width: request.query['width'], height: request.query['height'] };
+    const width = request.query['w'];
+    const height = request.query['h'];
 
-    const dimenReq = new ImageDimensionModel(sizeQuery.width, sizeQuery.height);
-    const filenameReq = new FilenameModel(path);
-
-    const filenameSrc = await Promise.resolve().then(async () => {
-      const filenameSrc = new FilenameModel(path);
-
-      const isFile = await this.isFile(filenameSrc.toString());
-      if (isFile) return filenameSrc;
-
-      const formats = await this.getFormatsByName(filenameReq.name);
-      const [format] = formats;
-      if (format) return new FilenameModel(filenameReq.name, format.ext);
-
-      return null;
-    });
-    if (!filenameSrc) throw new NotFoundException('no files found');
-
-    // checking supported format
-    const format = List.find((format) => format.ext === filenameReq.ext);
-    if (!format) throw new BadRequestException('format not support');
-
-    // prepare transformer
-    const transformer = await Promise.resolve()
-      // transform size
-      .then(async () => {
-        if (!dimenReq.isSet()) return null;
-
-        const dimenImg: any = await this.getFileDimension(filenameSrc.toString());
-
-        const isSameWidth = dimenReq.width === dimenImg.width;
-        const isSameHeight = dimenReq.height === dimenImg.height;
-        const onlyWidth = dimenReq.width && !dimenReq.height;
-        const onlyHeight = !dimenReq.width && dimenReq.height;
-
-        const isSameDimension = isSameWidth && isSameHeight;
-        const onlySameWidth = onlyWidth && isSameWidth;
-        const onlySameHeight = onlyHeight && isSameHeight;
-
-        if (isSameDimension || onlySameWidth || onlySameHeight) {
-          return null;
-        }
-
-        if (dimenReq.width > dimenImg.width) {
-          dimenReq.width = dimenImg.width;
-        }
-        if (dimenReq.height > dimenImg.height) {
-          dimenReq.height = dimenImg.height;
-        }
-
-        if (dimenReq.width === 0) dimenReq.width = undefined;
-        if (dimenReq.height === 0) dimenReq.height = undefined;
-
-        return sharp().resize(dimenReq);
-      })
-      // transform media type
-      .then((transformer): sharp.Sharp | null => {
-        if (filenameReq.ext === filenameSrc.ext) return transformer;
-
-        const newTransformer = (() => {
-          if (transformer) return transformer;
-
-          return sharp();
-        })();
-
-        switch (filenameReq.ext) {
-          case PNG_IMAGE_FORMAT.ext:
-            newTransformer.png();
-            break;
-          case JPG_IMAGE_FORMAT.ext:
-          case JPEG_IMAGE_FORMAT.ext:
-            newTransformer.jpeg();
-            break;
-          case WEBP_IMAGE_FORMAT.ext:
-            newTransformer.webp();
-            break;
-        }
-
-        return newTransformer;
-      });
-
-    const readStream = await (async () => {
-      const readStream = await this.localFileService.readStreamFilename(filenameSrc.toString());
-      if (!transformer) return readStream;
-
-      return readStream.pipe(transformer);
-    })();
-    readStream.on('data', (chunk: any) => response.write(chunk));
-    readStream.on('end', () => response.end());
-    readStream.on('error', (error: any) => {
-      console.error(error);
-      throw new InternalServerErrorException('read fail');
-    });
+    await this.appService.getStaticImage(
+      { name, width: width?.toString(), height: height?.toString() },
+      { write: (chunk: any) => response.write(chunk), end: () => response.end() },
+    );
   }
 
-  private async getFileDimension(filename: string = ''): Promise<unknown> {
-    const storage = this.localFileService;
-    if (!storage) return { filename: undefined, isSuccess: false };
-
-    const filenameObj = new FilenameModel(filename);
-    if (
-      this.localFileService instanceof LocalFileService &&
-      filenameObj.ext !== WEBP_IMAGE_FORMAT.ext
-    ) {
-      const absolutePath = storage.getAbsolutePathOfFilename(filenameObj.toString());
-      const imageStream = sharp(absolutePath);
-      const metadata = await imageStream.metadata();
-      const dimen = { width: metadata.width, height: metadata.height };
-      imageStream.destroy();
-      return dimen;
-    }
-
-    const fileReadStream = await storage.readStreamFilename(filenameObj.toString());
-    return await new Promise((resolve, reject) => {
-      let width = 0;
-      let height = 0;
-
-      const sharpStream = sharp().on('info', (info) => {
-        width = info.width;
-        height = info.height;
-      });
-
-      fileReadStream
-        .pipe(sharpStream)
-        .on('data', () => {})
-        .on('close', () => resolve({ width, height }))
-        .on('error', (error) => reject(error));
-    });
-  }
-  private async getFormatsByName(name: string = ''): Promise<ImageFormatModel[]> {
-    const formats: ImageFormatModel[] = [];
-    for (const format of List) {
-      const filename = new FilenameModel(name, format.ext);
-      const isFile = await this.isFile(filename.toString());
-      if (isFile) formats.push(format);
-    }
-    return formats;
-  }
-  private async isFile(filename: string = ''): Promise<unknown> {
-    const storage = this.localFileService;
-    if (!storage) return { filename: undefined, isSuccess: false };
-
-    if (this.localFileService instanceof LocalFileService) {
-      return this.localFileService?.isFile(filename);
-    }
-
-    return await new Promise(async (resolve, reject) => {
-      let isFile = false;
-
-      const fileStream = await storage.readStreamFilename(filename);
-      const stream = fileStream.pipe(sharp().on('info', () => (isFile = true)));
-      stream.on('data', () => {});
-      stream.on('end', () => resolve(isFile));
-      stream.on('error', (error) => resolve(false));
-    });
+  @Get('api/public/filenames')
+  getStaticImageFilenames(): Promise<string[]> {
+    return this.appService.getStaticImageFilenames();
   }
 }
