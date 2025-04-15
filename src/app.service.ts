@@ -22,14 +22,15 @@ export class AppService {
   constructor(private readonly localFileService: LocalFileService) {}
 
   async getStaticImage(
-    option: { name: string; width?: number | string; height?: number | string },
+    name: string,
+    option: { width?: number | string; height?: number | string },
     result: { write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
     const dimenReq = new ImageDimensionModel(option.width, option.height);
-    const filenameReq = new FilenameModel(option.name);
+    const filenameReq = new FilenameModel(name);
 
     const filenameSrc = await Promise.resolve().then(async () => {
-      const filenameSrc = new FilenameModel(option.name);
+      const filenameSrc = new FilenameModel(name);
 
       const isFile = await this.isFile(filenameSrc.toString());
       if (isFile) return filenameSrc;

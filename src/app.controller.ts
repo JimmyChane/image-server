@@ -20,13 +20,17 @@ export class AppController {
     const height = request.query['h'];
 
     await this.appService.getStaticImage(
-      { name, width: width?.toString(), height: height?.toString() },
+      decodeURIComponent(name),
+      { width: width?.toString(), height: height?.toString() },
       { write: (chunk: any) => response.write(chunk), end: () => response.end() },
     );
   }
 
   @Get('api/public/filenames')
-  getStaticImageFilenames(): Promise<string[]> {
-    return this.appService.getStaticImageFilenames();
+  async getStaticImageFilenames(): Promise<string[]> {
+    const filenames = await this.appService.getStaticImageFilenames();
+    return filenames.map((filename) => {
+      return encodeURIComponent(filename).toString();
+    });
   }
 }

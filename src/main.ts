@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'process';
 import { AppModule } from './app.module';
-import { isProduction } from './config';
+import { ALLOWED_CROSS_ORIGINS, isProduction } from './config';
 
 async function bootstrap() {
   const httpsOptions = (() => {
@@ -23,12 +23,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { httpsOptions });
   const configService = app.get(ConfigService);
 
-  const allowedOrigins: string[] = [];
-
-  // todo: test cors
   const corsOption: CorsOptions = {
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || ALLOWED_CROSS_ORIGINS.includes(origin)) {
         callback(null, true);
         return;
       }
@@ -42,6 +39,7 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT') || 3000;
   await app.listen(port);
+  console.log(`http://localhost:${port}`);
 }
 
 bootstrap();

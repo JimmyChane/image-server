@@ -25,7 +25,7 @@ export class FilenameModel {
     }
 
     this.name = filterName(str.substring(0, lastIndexDot));
-    this.ext = str.substring(lastIndexDot + 1, str.length);
+    this.ext = str.substring(lastIndexDot + 1, str.length).toLowerCase();
   }
 
   toString(): string {
