@@ -5,12 +5,12 @@ import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
 
 @Controller()
-@CacheControl({ maxAge: 604_800, public: true })
-@Expires(604_800)
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('public/*path')
+  @CacheControl({ maxAge: 604_800, public: true })
+  @Expires(604_800)
   async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
     const paths = request.path.split('/');
     const name = paths.at(-1);

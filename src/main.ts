@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'process';
 import { AppModule } from './app.module';
-import { ALLOWED_CROSS_ORIGINS, isProduction } from './config';
+import { isProduction } from './config';
 
 async function bootstrap() {
   const httpsOptions = (() => {
@@ -23,18 +23,30 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { httpsOptions });
   const configService = app.get(ConfigService);
 
-  const corsOption: CorsOptions = {
-    origin: (origin, callback) => {
-      if (!origin || ALLOWED_CROSS_ORIGINS.includes(origin)) {
-        callback(null, true);
-        return;
-      }
+  const corsOption = (() => {
+    if (!isProduction()) return;
 
-      callback(new Error('Not allowed by CORS'));
-    },
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    credentials: true,
-  };
+    const ALLOWED_CROSS_ORIGINS = configService.get<unknown>('ALLOWED_CROSS_ORIGINS');
+    if (typeof ALLOWED_CROSS_ORIGINS !== 'string') {
+      throw new Error('ALLOWED_CROSS_ORIGINS is not defined');
+    }
+
+    const option: CorsOptions = {
+      origin: (origin, callback) => {
+        if (!origin || ALLOWED_CROSS_ORIGINS.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error('Not allowed by CORS'));
+      },
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      credentials: true,
+    };
+
+    return option;
+  })();
+
   app.enableCors(corsOption);
 
   const port = configService.get<number>('PORT') || 3000;

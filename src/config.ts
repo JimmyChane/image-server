@@ -1,7 +1,12 @@
-export const ALLOWED_CROSS_ORIGINS: string[] = ['http://localhost:3000'];
-
 export function isProduction(): boolean {
   if (typeof process.env['NODE_ENV'] !== 'string') return true;
 
-  return !['development', 'development '].includes(process.env['NODE_ENV']);
+  switch (process.env['NODE_ENV']) {
+    case 'development':
+      return false;
+    case 'production':
+      return true;
+    default:
+      throw new Error('NODE_ENV is not defined');
+  }
 }

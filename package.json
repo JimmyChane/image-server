@@ -1,6 +1,6 @@
 {
   "name": "rory-image-server",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "",
   "author": "",
   "private": true,
@@ -9,9 +9,9 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*\" \"*.json\"",
     "start": "nest start",
-    "start:dev": "set NODE_ENV=development&& nest start --watch",
+    "start:dev": "cross-env NODE_ENV=development nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "check": "tsc --noEmit",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@types/cors": "^2.8.17",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.0"
