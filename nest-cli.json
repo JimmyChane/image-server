@@ -4,6 +4,13 @@
   "sourceRoot": "src",
   "compilerOptions": { "deleteOutDir": true, "webpack": false },
   "projects": {
+    "app-config": {
+      "type": "library",
+      "root": "libs/app-config",
+      "entryFile": "index",
+      "sourceRoot": "libs/app-config/src",
+      "compilerOptions": { "tsConfigPath": "libs/app-config/tsconfig.lib.json" }
+    },
     "local-file": {
       "type": "library",
       "root": "libs/local-file",

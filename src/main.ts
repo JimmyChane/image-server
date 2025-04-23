@@ -1,11 +1,21 @@
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@app/app-config';
 import { NestFactory } from '@nestjs/core';
 import { CorsOptions } from 'cors';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'process';
 import { AppModule } from './app.module';
-import { isProduction } from './config';
+
+function isProduction(): boolean {
+  switch (process.env['NODE_ENV']) {
+    case 'development':
+      return false;
+    case 'production':
+      return true;
+    default:
+      throw new Error('NODE_ENV is not defined');
+  }
+}
 
 async function bootstrap() {
   const httpsOptions = (() => {
@@ -21,19 +31,18 @@ async function bootstrap() {
   })();
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
-  const configService = app.get(ConfigService);
+  const configService = app.get(AppConfigService);
 
   const corsOption = (() => {
     if (!isProduction()) return;
 
-    const ALLOWED_CROSS_ORIGINS = configService.get<unknown>('ALLOWED_CROSS_ORIGINS');
-    if (typeof ALLOWED_CROSS_ORIGINS !== 'string') {
+    if (!configService.allowedCrossOrigins.length) {
       throw new Error('ALLOWED_CROSS_ORIGINS is not defined');
     }
 
     const option: CorsOptions = {
       origin: (origin, callback) => {
-        if (!origin || ALLOWED_CROSS_ORIGINS.includes(origin)) {
+        if (!origin || configService.allowedCrossOrigins.includes(origin)) {
           callback(null, true);
           return;
         }
@@ -49,9 +58,7 @@ async function bootstrap() {
 
   app.enableCors(corsOption);
 
-  const port = configService.get<number>('PORT') || 3000;
-  await app.listen(port);
-  console.log(`http://localhost:${port}`);
+  await app.listen(configService.port);
+  console.log(`http://localhost:${configService.port}`);
 }
-
 bootstrap();

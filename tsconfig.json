@@ -26,6 +26,8 @@
     "useUnknownInCatchVariables": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@app/app-config": ["libs/app-config/src"],
+      "@app/app-config/*": ["libs/app-config/src/*"],
       "@app/local-file": ["libs/local-file/src"],
       "@app/local-file/*": ["libs/local-file/src/*"]
     }
