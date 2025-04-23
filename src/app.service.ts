@@ -9,10 +9,10 @@ import * as sharp from 'sharp';
 import { FilenameModel } from './model/Filename.model';
 import { ImageDimensionModel } from './model/ImageDimension.model';
 import {
+  IMAGE_FORMAT_LIST,
   ImageFormatModel,
   JPEG_IMAGE_FORMAT,
   JPG_IMAGE_FORMAT,
-  List,
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
 } from './model/ImageFormat.model';
@@ -29,7 +29,7 @@ export class AppService {
     const dimenReq = new ImageDimensionModel(option.width, option.height);
     const filenameReq = new FilenameModel(name);
 
-    const filenameSrc = await Promise.resolve().then(async () => {
+    const filenameSrc = await (async () => {
       const filenameSrc = new FilenameModel(name);
 
       const isFile = await this.isFile(filenameSrc.toString());
@@ -39,72 +39,71 @@ export class AppService {
       const [format] = formats;
       if (format) return new FilenameModel(filenameReq.name, format.ext);
 
-      return null;
-    });
+      return undefined;
+    })();
     if (!filenameSrc) throw new NotFoundException('no files found');
 
     // checking supported format
-    const format = List.find((format) => format.ext === filenameReq.ext);
+    const format = IMAGE_FORMAT_LIST.find((format) => format.ext === filenameReq.ext);
     if (!format) throw new BadRequestException('format not support');
 
-    // prepare transformer
-    const transformer = await Promise.resolve()
-      // transform size
-      .then(async () => {
-        if (!dimenReq.isSet()) return null;
+    let transformer: sharp.Sharp | undefined = undefined;
 
-        const dimenImg = await this.getFileDimension(filenameSrc.toString());
+    // transform size
+    transformer = await (async () => {
+      if (!dimenReq.isSet()) return undefined;
 
-        const isSameWidth = dimenReq.width === dimenImg?.width;
-        const isSameHeight = dimenReq.height === dimenImg?.height;
-        const onlyWidth = dimenReq.width && !dimenReq.height;
-        const onlyHeight = !dimenReq.width && dimenReq.height;
+      const dimenImg = await this.getFileDimension(filenameSrc.toString());
 
-        const isSameDimension = isSameWidth && isSameHeight;
-        const onlySameWidth = onlyWidth && isSameWidth;
-        const onlySameHeight = onlyHeight && isSameHeight;
+      const isSameWidth = dimenReq.width === dimenImg?.width;
+      const isSameHeight = dimenReq.height === dimenImg?.height;
+      const onlyWidth = dimenReq.width && !dimenReq.height;
+      const onlyHeight = !dimenReq.width && dimenReq.height;
 
-        if (isSameDimension || onlySameWidth || onlySameHeight) {
-          return null;
-        }
+      const isSameDimension = isSameWidth && isSameHeight;
+      const onlySameWidth = onlyWidth && isSameWidth;
+      const onlySameHeight = onlyHeight && isSameHeight;
 
-        if ((dimenReq.width ?? 0) > (dimenImg?.width ?? 0)) {
-          dimenReq.width = dimenImg?.width;
-        }
-        if ((dimenReq.height ?? 0) > (dimenImg?.height ?? 0)) {
-          dimenReq.height = dimenImg?.height;
-        }
+      if (isSameDimension || onlySameWidth || onlySameHeight) {
+        return undefined;
+      }
 
-        if (dimenReq.width === 0) dimenReq.width = undefined;
-        if (dimenReq.height === 0) dimenReq.height = undefined;
+      if ((dimenReq.width ?? 0) > (dimenImg?.width ?? 0)) {
+        dimenReq.width = dimenImg?.width;
+      }
+      if ((dimenReq.height ?? 0) > (dimenImg?.height ?? 0)) {
+        dimenReq.height = dimenImg?.height;
+      }
 
-        return sharp().resize(dimenReq);
-      })
-      // transform media type
-      .then((transformer): sharp.Sharp | null => {
-        if (filenameReq.ext === filenameSrc.ext) return transformer;
+      if (dimenReq.width === 0) dimenReq.width = undefined;
+      if (dimenReq.height === 0) dimenReq.height = undefined;
 
-        const newTransformer = (() => {
-          if (transformer) return transformer;
+      return sharp().resize(dimenReq);
+    })();
 
-          return sharp();
-        })();
+    // transform media type
+    if (filenameReq.ext !== filenameSrc.ext) {
+      const newTransformer = (() => {
+        if (transformer) return transformer;
 
-        switch (filenameReq.ext) {
-          case PNG_IMAGE_FORMAT.ext:
-            newTransformer.png();
-            break;
-          case JPG_IMAGE_FORMAT.ext:
-          case JPEG_IMAGE_FORMAT.ext:
-            newTransformer.jpeg();
-            break;
-          case WEBP_IMAGE_FORMAT.ext:
-            newTransformer.webp();
-            break;
-        }
+        return sharp();
+      })();
 
-        return newTransformer;
-      });
+      switch (filenameReq.ext) {
+        case PNG_IMAGE_FORMAT.ext:
+          newTransformer.png();
+          break;
+        case JPG_IMAGE_FORMAT.ext:
+        case JPEG_IMAGE_FORMAT.ext:
+          newTransformer.jpeg();
+          break;
+        case WEBP_IMAGE_FORMAT.ext:
+          newTransformer.webp();
+          break;
+      }
+
+      transformer = newTransformer;
+    }
 
     const readStream = await (async () => {
       const readStream = await this.localFileService.readStreamFilename(filenameSrc.toString());
@@ -161,7 +160,7 @@ export class AppService {
   }
   private async getFormatsByName(name: string = ''): Promise<ImageFormatModel[]> {
     const formats: ImageFormatModel[] = [];
-    for (const format of List) {
+    for (const format of IMAGE_FORMAT_LIST) {
       const filename = new FilenameModel(name, format.ext);
       const isFile = await this.isFile(filename.toString());
       if (isFile) formats.push(format);
