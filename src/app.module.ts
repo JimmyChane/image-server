@@ -1,5 +1,5 @@
 import { AppConfigModule } from '@app/app-config';
-import { LocalFileModule } from '@app/local-file';
+import { ImageModule } from '@app/image';
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -8,7 +8,7 @@ import { CacheControlInterceptor } from './cache-control/CacheControl.intercepto
 import { ExpiresInterceptor } from './expires/Expires.interceptor';
 
 @Module({
-  imports: [AppConfigModule, LocalFileModule],
+  imports: [AppConfigModule, ImageModule],
   controllers: [AppController],
   providers: [
     AppService,

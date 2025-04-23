@@ -7,6 +7,8 @@
   "moduleNameMapper": {
     "@app/app-config": "<rootDir>/../libs/app-config/src",
     "@app/app-config/(.*)": "<rootDir>/../libs/app-config/src/$1",
+    "@app/image": "<rootDir>/../libs/image/src",
+    "@app/image/(.*)": "<rootDir>/../libs/image/src/$1",
     "@app/local-file": "<rootDir>/../libs/local-file/src",
     "@app/local-file/(.*)": "<rootDir>/../libs/local-file/src/$1"
   }

@@ -9,8 +9,8 @@ function filterName(name = ''): string {
 }
 
 export class FilenameModel {
-  name = '';
-  ext = '';
+  name: string = '';
+  ext: string = '';
 
   constructor(name = '', ext = '') {
     const filename = `${name}.${ext}`;
