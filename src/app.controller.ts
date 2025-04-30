@@ -23,7 +23,11 @@ export class AppController {
     await this.imageService.getStaticImage(
       name,
       { width, height },
-      { write: (chunk: any) => response.write(chunk), end: () => response.end() },
+      {
+        contentType: (contentType: string) => response.contentType(contentType),
+        write: (chunk: any) => response.write(chunk),
+        end: () => response.end(),
+      },
     );
   }
 

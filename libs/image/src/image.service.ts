@@ -24,7 +24,11 @@ export class ImageService {
   async getStaticImage(
     name: string,
     option: { width?: number | string; height?: number | string },
-    result: { write: (chunk: any) => void; end: () => void },
+    result: {
+      contentType: (contentType: string) => void;
+      write: (chunk: any) => void;
+      end: () => void;
+    },
   ): Promise<void> {
     const dimenReq = new ImageDimensionModel(option.width, option.height);
     const filenameReq = new FilenameModel(name);
@@ -46,6 +50,8 @@ export class ImageService {
     // checking supported format
     const format = IMAGE_FORMAT_LIST.find((format) => format.ext === filenameReq.ext);
     if (!format) throw new BadRequestException('format not support');
+
+    result.contentType(format.mimetype);
 
     let transformer: sharp.Sharp | undefined = undefined;
 
