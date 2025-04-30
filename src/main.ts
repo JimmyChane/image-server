@@ -33,32 +33,32 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { httpsOptions });
   const configService = app.get(AppConfigService);
 
-  const corsOption = (() => {
+  const corsOption: CorsOptions | undefined = (() => {
     if (!isProduction()) return;
 
-    if (!configService.allowedCrossOrigins.length) {
-      throw new Error('ALLOWED_CROSS_ORIGINS is not defined');
+    const methods: CorsOptions['methods'] = ['GET'];
+    const credentials: CorsOptions['credentials'] = true;
+
+    if (!configService.allowedCrossOrigin.length) {
+      return { methods: methods, credentials };
     }
 
-    const option: CorsOptions = {
+    return {
       origin: (origin, callback) => {
-        if (!origin || configService.allowedCrossOrigins.includes(origin)) {
+        if (!origin || configService.allowedCrossOrigin.includes(origin)) {
           callback(null, true);
           return;
         }
 
         callback(new Error('Not allowed by CORS'));
       },
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-      credentials: true,
+      methods,
+      credentials,
     };
-
-    return option;
   })();
 
   app.enableCors(corsOption);
 
   await app.listen(configService.port);
-  console.log(`http://localhost:${configService.port}`);
 }
 bootstrap();

@@ -5,19 +5,21 @@ import { ConfigService } from '@nestjs/config';
 export class AppConfigService {
   readonly port: number;
   readonly nodeEnv: 'development' | 'production';
-  readonly allowedCrossOrigins: string[];
+  readonly allowedCrossOrigin: string[];
 
   constructor(configService: ConfigService) {
     this.port = (() => {
       const port = configService.get<string>('PORT');
 
-      if (typeof port !== 'string') {
-        return 3000;
+      if (typeof port === 'number') {
+        return port;
       }
 
-      const portNumber = parseInt(port);
-      if (!isNaN(portNumber)) {
-        return portNumber;
+      if (typeof port === 'string') {
+        const portNumber = parseInt(port);
+        if (!isNaN(portNumber)) {
+          return portNumber;
+        }
       }
 
       throw new Error('PORT is not defined');
@@ -36,8 +38,8 @@ export class AppConfigService {
       }
     })();
 
-    this.allowedCrossOrigins = (() => {
-      const allowedCrossOrigins = configService.get<string>('ALLOWED_CROSS_ORIGINS');
+    this.allowedCrossOrigin = (() => {
+      const allowedCrossOrigins = configService.get<string>('ALLOWED_CROSS_ORIGIN');
       if (typeof allowedCrossOrigins !== 'string') return [];
 
       return allowedCrossOrigins.split(',').map((value) => value.trim());
