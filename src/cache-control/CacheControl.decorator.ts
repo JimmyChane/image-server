@@ -1,10 +1,10 @@
-import { SetMetadata } from '@nestjs/common';
+import { CustomDecorator, SetMetadata } from '@nestjs/common';
 
 import {
   CACHE_CONTROL_METADATA_KEY,
   CacheControlOption,
 } from '@/cache-control/CacheControl.interceptor';
 
-export const CacheControl = (options: CacheControlOption) => {
+export function CacheControl(options: CacheControlOption): CustomDecorator<string> {
   return SetMetadata(CACHE_CONTROL_METADATA_KEY, options);
-};
+}

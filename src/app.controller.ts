@@ -1,6 +1,7 @@
 import { ImageService } from '@app/image';
 import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { UrlAccessToken } from './access-token/AccessToken.decorator';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
 
@@ -11,6 +12,7 @@ export class AppController {
   @Get('public/*path')
   @CacheControl({ maxAge: 604_800, public: true })
   @Expires(604_800)
+  @UrlAccessToken()
   async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
     const paths = request.path.split('/');
     const lastPath = paths.at(-1);
@@ -32,6 +34,7 @@ export class AppController {
   }
 
   @Get('api/public/filenames')
+  @UrlAccessToken()
   async getStaticImageFilenames(): Promise<string[]> {
     const filenames = await this.imageService.getStaticImageFilenames();
     return filenames.map((filename) => {

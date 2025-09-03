@@ -6,6 +6,7 @@ export class AppConfigService {
   readonly port: number;
   readonly nodeEnv: 'development' | 'production';
   readonly allowedCrossOrigin: string[];
+  readonly token: string;
 
   constructor(configService: ConfigService) {
     this.port = (() => {
@@ -43,6 +44,15 @@ export class AppConfigService {
       if (typeof allowedCrossOrigins !== 'string') return [];
 
       return allowedCrossOrigins.split(',').map((value) => value.trim());
+    })();
+
+    this.token = (() => {
+      const value = configService.get<string>('ACCESS_TOKEN');
+      if (typeof value !== 'string') {
+        throw new Error('ACCESS_TOKEN is not defined');
+      }
+
+      return value;
     })();
   }
 }

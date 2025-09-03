@@ -9,8 +9,8 @@ function filterName(name = ''): string {
 }
 
 export class FilenameModel {
-  name: string = '';
-  ext: string = '';
+  readonly name: string = '';
+  readonly ext: string = '';
 
   constructor(name = '', ext = '') {
     const filename = `${name}.${ext}`;
@@ -30,11 +30,5 @@ export class FilenameModel {
 
   toString(): string {
     return filterName(`${this.name}.${this.ext}`);
-  }
-  replaceExt(ext = ''): this {
-    if (ext.length) {
-      this.ext = ext;
-    }
-    return this;
   }
 }

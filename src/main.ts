@@ -17,7 +17,7 @@ function isProduction(): boolean {
   }
 }
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const httpsOptions = (() => {
     if (!isProduction()) return;
 
