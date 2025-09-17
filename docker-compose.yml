@@ -1,0 +1,12 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  main:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      ALLOWED_CROSS_ORIGIN: ${ALLOWED_CROSS_ORIGIN}
+      ACCESS_TOKEN: ${ACCESS_TOKEN}
