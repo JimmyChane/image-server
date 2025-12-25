@@ -1,4 +1,5 @@
-import { ImageService } from '@app/image/image.service';
+import { ImageListService } from '@app/image/image-list.service';
+import { ImageStreamService } from '@app/image/image-stream.service';
 import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UrlAccessToken } from './access-token/AccessToken.decorator';
@@ -7,7 +8,10 @@ import { Expires } from './expires/Expires.decorator';
 
 @Controller()
 export class AppController {
-  constructor(private readonly imageService: ImageService) {}
+  constructor(
+    private readonly imageListService: ImageListService,
+    private readonly imageStreamService: ImageStreamService,
+  ) {}
 
   @Get('public/*path')
   @CacheControl({ maxAge: 604_800, public: true })
@@ -22,7 +26,7 @@ export class AppController {
     const width = request.query['w']?.toString();
     const height = request.query['h']?.toString();
 
-    await this.imageService.getStaticImage(
+    await this.imageStreamService.streamImage(
       name,
       { width, height },
       {
@@ -36,7 +40,7 @@ export class AppController {
   @Get('api/public/filenames')
   @UrlAccessToken()
   async getStaticImageFilenames(): Promise<string[]> {
-    const filenames = await this.imageService.getStaticImageFilenames();
+    const filenames = await this.imageListService.getStaticImageFilenames();
     return filenames.map((filename) => {
       return encodeURIComponent(filename).toString();
     });
