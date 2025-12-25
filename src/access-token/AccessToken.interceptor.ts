@@ -24,7 +24,7 @@ export class AccessTokenInterceptor implements NestInterceptor {
     if (!tokenFromQuery.length) {
       throw new HttpException('Unauthorized', 401);
     }
-    if (tokenFromQuery !== this.configService.token) {
+    if (tokenFromQuery !== this.configService.APP_ACCESS_TOKEN) {
       throw new HttpException('Unauthorized', 401);
     }
 

@@ -3,13 +3,13 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AppEnvService {
-  readonly port: number;
-  readonly nodeEnv: 'development' | 'production';
-  readonly allowedCrossOrigin: string[];
-  readonly token: string;
+  readonly APP_PORT: number;
+  readonly APP_ENV_MODE: 'development' | 'production';
+  readonly APP_ALLOWED_CROSS_ORIGIN: string[];
+  readonly APP_ACCESS_TOKEN: string;
 
   constructor(configService: ConfigService) {
-    this.port = (() => {
+    this.APP_PORT = (() => {
       const port = configService.get<string>('PORT');
 
       if (typeof port === 'number') {
@@ -26,7 +26,7 @@ export class AppEnvService {
       throw new Error('PORT is not defined');
     })();
 
-    this.nodeEnv = (() => {
+    this.APP_ENV_MODE = (() => {
       const noveEnv = configService.get<string>('NODE_ENV');
 
       switch (noveEnv) {
@@ -39,14 +39,14 @@ export class AppEnvService {
       }
     })();
 
-    this.allowedCrossOrigin = (() => {
+    this.APP_ALLOWED_CROSS_ORIGIN = (() => {
       const allowedCrossOrigins = configService.get<string>('ALLOWED_CROSS_ORIGIN');
       if (typeof allowedCrossOrigins !== 'string') return [];
 
       return allowedCrossOrigins.split(',').map((value) => value.trim());
     })();
 
-    this.token = (() => {
+    this.APP_ACCESS_TOKEN = (() => {
       const value = configService.get<string>('ACCESS_TOKEN');
       if (typeof value !== 'string') {
         throw new Error('ACCESS_TOKEN is not defined');
