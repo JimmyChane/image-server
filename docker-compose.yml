@@ -2,7 +2,7 @@ services:
   main:
     build: .
     ports:
-      - '3000:3000'
+      - '3001:3000'
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
@@ -11,7 +11,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/build_output:/app/dist
+      - /app/dist
     deploy:
       replicas: 1
     command: npm run start:dev
