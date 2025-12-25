@@ -1,5 +1,3 @@
-# docker-compose.yml
-version: '3.8'
 services:
   main:
     build: .
@@ -10,3 +8,10 @@ services:
       PORT: ${PORT}
       ALLOWED_CROSS_ORIGIN: ${ALLOWED_CROSS_ORIGIN}
       ACCESS_TOKEN: ${ACCESS_TOKEN}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/build_output:/app/dist
+    deploy:
+      replicas: 1
+    command: npm run start:dev
