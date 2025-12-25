@@ -1,14 +1,6 @@
 import { wrapWhite } from '@/util/ConsoleTextWrapper';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import {
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readdirSync,
-  unlink,
-} from 'node:fs';
+import { createReadStream, createWriteStream, existsSync, lstatSync, mkdirSync, readdirSync, unlink } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
 

@@ -13,22 +13,21 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import * as sharp from 'sharp';
 
 @Injectable()
 export class ImageService {
+  private readonly logger = new Logger(ImageService.name);
+
   constructor(private readonly localFileService: LocalFileService) {}
 
   async getStaticImage(
     name: string,
     option: { width?: number | string; height?: number | string },
-    result: {
-      contentType: (contentType: string) => void;
-      write: (chunk: any) => void;
-      end: () => void;
-    },
+    result: { contentType: (contentType: string) => void; write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
     const dimenReq = new ImageDimensionModel(option.width, option.height);
     const filenameReq = new FilenameModel(name);
@@ -120,7 +119,7 @@ export class ImageService {
     readStream.on('data', (chunk: any) => result.write(chunk));
     readStream.on('end', () => result.end());
     readStream.on('error', (error: any) => {
-      console.error(error);
+      this.logger.error(error);
       throw new InternalServerErrorException('read fail');
     });
   }
@@ -128,9 +127,7 @@ export class ImageService {
     return this.localFileService.getFilenames();
   }
 
-  private async getFileDimension(
-    filename: string = '',
-  ): Promise<{ width?: number; height?: number } | undefined> {
+  private async getFileDimension(filename: string = ''): Promise<{ width?: number; height?: number } | undefined> {
     const filenameObj = new FilenameModel(filename);
     if (filenameObj.ext !== WEBP_IMAGE_FORMAT.ext) {
       const absolutePath = this.localFileService.getAbsolutePathOfFilename(filenameObj.toString());

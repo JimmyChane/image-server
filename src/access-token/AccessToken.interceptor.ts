@@ -1,11 +1,5 @@
 import { AppEnvService } from '@app/app-env/app-env.service';
-import {
-  CallHandler,
-  ExecutionContext,
-  HttpException,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, HttpException, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
 export const ACCESS_TOKEN_METADATA_KEY = 'access-token';

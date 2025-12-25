@@ -13,15 +13,9 @@ export class ExpiresInterceptor implements NestInterceptor {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const handlerOptions = this.reflector.get<ExpiresOption | undefined>(
-      EXPIRES_METADATA_KEY,
-      context.getHandler(),
-    );
+    const handlerOptions = this.reflector.get<ExpiresOption | undefined>(EXPIRES_METADATA_KEY, context.getHandler());
 
-    const classOptions = this.reflector.get<ExpiresOption | undefined>(
-      EXPIRES_METADATA_KEY,
-      context.getClass(),
-    );
+    const classOptions = this.reflector.get<ExpiresOption | undefined>(EXPIRES_METADATA_KEY, context.getClass());
 
     const mergedOptions: ExpiresOption | undefined = classOptions ?? handlerOptions;
 

@@ -12,9 +12,7 @@ export class AppService implements OnApplicationBootstrap {
     this.logger.log(`App Version ${this.versionName}`);
 
     this.logger.log(`APP_ENV_MODE ${this.envService.APP_ENV_MODE}`);
-    this.logger.log(
-      `APP_ALLOWED_CROSS_ORIGIN ${this.envService.APP_ALLOWED_CROSS_ORIGIN.join(', ')}`,
-    );
+    this.logger.log(`APP_ALLOWED_CROSS_ORIGIN ${this.envService.APP_ALLOWED_CROSS_ORIGIN.join(', ')}`);
 
     this.logger.log(`Listening on http://localhost:${this.envService.APP_PORT}`);
   }

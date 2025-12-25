@@ -33,9 +33,7 @@ export class AppConfigService {
 
         for (const allowedOrigin of this.envService.APP_ALLOWED_CROSS_ORIGIN) {
           if (allowedOrigin.includes('*')) {
-            const regex = new RegExp(
-              `^${allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`,
-            );
+            const regex = new RegExp(`^${allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`);
             if (regex.test(requestOrigin)) {
               callback(null, true);
               return;
@@ -52,11 +50,6 @@ export class AppConfigService {
       };
     }
 
-    return {
-      origin,
-      methods: ['GET'],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'x-access-token'],
-    };
+    return { origin, methods: ['GET'], credentials: true, allowedHeaders: ['Content-Type', 'x-access-token'] };
   }
 }
