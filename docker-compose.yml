@@ -10,8 +10,19 @@ services:
       ACCESS_TOKEN: ${ACCESS_TOKEN}
     volumes:
       - .:/app
-      - /app/node_modules
       - /app/dist
+    develop:
+      watch:
+        - path: ./package.json
+          action: sync
+          target: /app/package.json
+        - path: ./package-lock.json
+          action: sync
+          target: /app/package-lock.json
+        - path: ./src
+          action: sync
+          target: /app/src
     deploy:
       replicas: 1
+    # command: sh -c "npm install && npm run start:dev"
     command: npm run start:dev

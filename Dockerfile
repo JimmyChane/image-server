@@ -1,14 +1,20 @@
-# Use the official Node.js 22 image as a parent image
+# 1. Use the official Node.js 22 image as a parent image
 FROM node:22-alpine3.21
 
-# Set the working directory in the container
+# 2. Set the working directory in the container
 WORKDIR /app
 
-# Copy the rest of the application code into the container at /app
+# 3. Cache Dependencies (THE MOST IMPORTANT PART)
+# Copy ONLY package files first. 
+# Docker will ONLY re-run 'npm install' if these files change.
+COPY package*.json ./
+RUN npm install
+
+# 4. Copy the rest of the code
 COPY . .
 
-# Install any needed packages specified in package.json
-RUN npm install
+# 5. Build the application (Required for start:prod)
+RUN npm run build
 
 # Run the Node.js application when the container launches
 CMD ["npm", "run", "start:prod"]
