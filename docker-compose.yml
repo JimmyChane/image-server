@@ -11,6 +11,7 @@ services:
     volumes:
       - .:/app
       - /app/dist
+      - /mnt/d/image_storage:/app/temp/image_storage # This is the direct mount
     develop:
       watch:
         - path: ./package.json

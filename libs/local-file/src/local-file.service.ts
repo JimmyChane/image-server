@@ -7,7 +7,8 @@ import { cwd } from 'node:process';
 @Injectable()
 export class LocalFileService implements OnModuleInit {
   private readonly logger = new Logger(LocalFileService.name);
-  private readonly PUBLIC_DIR = join(cwd(), 'public');
+  private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storag');
+  private readonly shouldCreateFolder: boolean = false;
 
   onModuleInit(): void {
     try {
@@ -18,10 +19,20 @@ export class LocalFileService implements OnModuleInit {
         this.logger.log(`Directory: ${wrapWhite(this.PUBLIC_DIR)}`);
         return;
       }
-      mkdirSync(this.PUBLIC_DIR, { recursive: false });
-      this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
+
+      if (this.shouldCreateFolder) {
+        mkdirSync(this.PUBLIC_DIR, { recursive: false });
+        this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
+      } else {
+        throw new Error(`Directory Not Found: ${wrapWhite(this.PUBLIC_DIR)}`);
+      }
     } catch (error) {
-      this.logger.error(error);
+      if (error instanceof Error) {
+        this.logger.error(error.message);
+      } else {
+        this.logger.error(error);
+      }
+      throw error;
     }
   }
 
