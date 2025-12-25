@@ -8,7 +8,7 @@ import {
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
 } from '@/model/ImageFormat.model';
-import { LocalFileService } from '@app/local-file';
+import { LocalFileService } from '@app/local-file/local-file.service';
 import {
   BadRequestException,
   Injectable,

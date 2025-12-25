@@ -1,5 +1,5 @@
-import { AppConfigModule } from '@app/app-config';
-import { ImageModule } from '@app/image';
+import { AppConfigModule } from '@app/app-config/app-config.module';
+import { ImageModule } from '@app/image/image.module';
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessTokenInterceptor } from './access-token/AccessToken.interceptor';

@@ -11,6 +11,13 @@
       "sourceRoot": "libs/app-config/src",
       "compilerOptions": { "tsConfigPath": "libs/app-config/tsconfig.lib.json" }
     },
+    "app-env": {
+      "type": "library",
+      "root": "libs/app-env",
+      "entryFile": "index",
+      "sourceRoot": "libs/app-env/src",
+      "compilerOptions": { "tsConfigPath": "libs/app-env/tsconfig.lib.json" }
+    },
     "image": {
       "type": "library",
       "root": "libs/image",

@@ -1,4 +1,4 @@
-import { AppConfigService } from '@app/app-config';
+import { AppEnvService } from '@app/app-env/app-env.service';
 import { NestFactory } from '@nestjs/core';
 import { CorsOptions } from 'cors';
 import { readFileSync } from 'node:fs';
@@ -31,7 +31,7 @@ async function bootstrap(): Promise<void> {
   })();
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
-  const configService = app.get(AppConfigService);
+  const configService = app.get(AppEnvService);
 
   const corsOption: CorsOptions | undefined = (() => {
     if (!isProduction()) return;

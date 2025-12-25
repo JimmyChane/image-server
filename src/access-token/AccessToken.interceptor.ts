@@ -1,4 +1,4 @@
-import { AppConfigService } from '@app/app-config';
+import { AppEnvService } from '@app/app-env/app-env.service';
 import {
   CallHandler,
   ExecutionContext,
@@ -12,7 +12,7 @@ export const ACCESS_TOKEN_METADATA_KEY = 'access-token';
 
 @Injectable()
 export class AccessTokenInterceptor implements NestInterceptor {
-  constructor(private readonly configService: AppConfigService) {}
+  constructor(private readonly configService: AppEnvService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();

@@ -13,7 +13,7 @@
     "start:dev:nowatch": "cross-env NODE_ENV=development nest start",
     "start:debug": "nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=production node dist/src/main",
-    "check": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -85,6 +85,7 @@
     ],
     "moduleNameMapper": {
       "^@app/app-config(|/.*)$": "<rootDir>/libs/app-config/src/$1",
+      "^@app/app-env(|/.*)$": "<rootDir>/libs/app-env/src/$1",
       "^@app/image(|/.*)$": "<rootDir>/libs/image/src/$1",
       "^@app/local-file(|/.*)$": "<rootDir>/libs/local-file/src/$1"
     }

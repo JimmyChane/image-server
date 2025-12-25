@@ -1,4 +1,4 @@
-import { ImageService } from '@app/image';
+import { ImageService } from '@app/image/image.service';
 import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UrlAccessToken } from './access-token/AccessToken.decorator';

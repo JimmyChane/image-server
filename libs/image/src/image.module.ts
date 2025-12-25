@@ -1,4 +1,4 @@
-import { LocalFileModule } from '@app/local-file';
+import { LocalFileModule } from '@app/local-file/local-file.module';
 import { Module } from '@nestjs/common';
 import { ImageService } from './image.service';
 
