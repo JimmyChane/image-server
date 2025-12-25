@@ -17,7 +17,7 @@ export class LocalFileService implements OnModuleInit {
   private readonly logger = new Logger(LocalFileService.name);
   private readonly PUBLIC_DIR = join(cwd(), 'public');
 
-  onModuleInit() {
+  onModuleInit(): void {
     try {
       const isExist = existsSync(this.PUBLIC_DIR);
       const isDirectory = isExist && lstatSync(this.PUBLIC_DIR).isDirectory();

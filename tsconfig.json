@@ -13,6 +13,8 @@
     "incremental": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "tsBuildInfoFile": "./build-cache/.tsbuildinfo",
+
     "strict": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
@@ -20,10 +22,14 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
+    "strictBuiltinIteratorReturn": true,
+
     "paths": {
       "@/*": ["./src/*"],
       "@app/app-config": ["libs/app-config/src"],
