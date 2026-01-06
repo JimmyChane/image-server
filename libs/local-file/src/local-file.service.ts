@@ -7,7 +7,7 @@ import { cwd } from 'node:process';
 @Injectable()
 export class LocalFileService implements OnModuleInit {
   private readonly logger = new Logger(LocalFileService.name);
-  private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storag');
+  private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
   private readonly shouldCreateFolder: boolean = false;
 
   onModuleInit(): void {
