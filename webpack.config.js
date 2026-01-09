@@ -1,7 +1,7 @@
 const path = require('node:path');
 
 module.exports = function (options, webpack) {
-  const isDev = process.env.APP_ENV_MODE === 'development';
+  const isDev = process.env.APP_ENV_MODE === 'dev';
 
   return {
     ...options,
