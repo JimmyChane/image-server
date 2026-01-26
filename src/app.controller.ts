@@ -1,13 +1,14 @@
 import { ImageListService } from '@app/image/image-list.service';
 import { ImageStreamService } from '@app/image/image-stream.service';
-import { Controller, Get, Logger, NotFoundException, Req, Res } from '@nestjs/common';
+import { Controller, Get, Logger, NotFoundException, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { UrlAccessToken } from './access-token/AccessToken.decorator';
+import { AccessTokenGuard } from './access-token/AccessToken.guard';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
 import { benchmark } from './util/benchmark';
 
 @Controller()
+@UseGuards(AccessTokenGuard)
 export class AppController {
   private readonly logger = new Logger(AppController.name);
 
@@ -16,10 +17,9 @@ export class AppController {
     private readonly imageStreamService: ImageStreamService,
   ) {}
 
-  @Get('public/*path')
+  @Get('/public/*path')
   @CacheControl({ maxAge: 604_800, public: true })
   @Expires(604_800)
-  @UrlAccessToken()
   async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
     const paths = request.path.split('/');
     const lastPath = paths.at(-1);
@@ -42,8 +42,7 @@ export class AppController {
     });
   }
 
-  @Get('api/public/filenames')
-  @UrlAccessToken()
+  @Get('/api/filenames')
   async getStaticImageFilenames(): Promise<string[]> {
     const filenames = await this.imageListService.getStaticImageFilenames();
     return filenames.map((filename) => {
