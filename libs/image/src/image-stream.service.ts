@@ -7,6 +7,7 @@ import {
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
 } from '@/model/ImageFormat.model';
+import { benchmark } from '@/util/benchmark';
 import { LocalFileService } from '@app/local-file/local-file.service';
 import {
   BadRequestException,
@@ -40,10 +41,14 @@ export class ImageStreamService {
     const filenameSrc = await (async () => {
       const filenameSrc = new FilenameModel(name);
 
-      const isFile = await this.localFileService.isFile(filenameSrc.toString());
+      const isFile = await benchmark(this.logger, 'isFile', () => {
+        return this.localFileService.isFile(filenameSrc.toString());
+      });
       if (isFile) return filenameSrc;
 
-      const formats = await this.imageFormatService.getFormatsByName(filenameReq.name);
+      const formats = await benchmark(this.logger, 'getFormat', () => {
+        return this.imageFormatService.getFormatsByName(filenameReq.name);
+      });
       const [format] = formats;
       if (format) return new FilenameModel(filenameReq.name, format.ext);
 
@@ -60,10 +65,12 @@ export class ImageStreamService {
     let transformer: sharp.Sharp | undefined = undefined;
 
     // transform size
-    transformer = await (async () => {
+    transformer = await benchmark(this.logger, 'transfomer', async () => {
       if (!dimenReq.isSet()) return undefined;
 
-      const dimenImg = await this.imageDimensionService.getFileDimensionByFilename(filenameSrc.toString());
+      const dimenImg = await benchmark(this.logger, 'getFileDimensionByFilename', () => {
+        return this.imageDimensionService.getFileDimensionByFilename(filenameSrc.toString());
+      });
 
       const isSameWidth = dimenReq.width === dimenImg?.width;
       const isSameHeight = dimenReq.height === dimenImg?.height;
@@ -89,7 +96,7 @@ export class ImageStreamService {
       if (dimenReq.height === 0) dimenReq.height = undefined;
 
       return sharp().resize(dimenReq);
-    })();
+    });
 
     // transform media type
     if (filenameReq.ext !== filenameSrc.ext) {
@@ -115,12 +122,14 @@ export class ImageStreamService {
       transformer = newTransformer;
     }
 
-    const readStream = await (async () => {
-      const readStream = await this.localFileService.readStreamFilename(filenameSrc.toString());
+    const readStream = await benchmark(this.logger, 'readStream', async () => {
+      const readStream = await benchmark(this.logger, 'readStreamFilename', () => {
+        return this.localFileService.readStreamFilename(filenameSrc.toString());
+      });
       if (!transformer) return readStream;
 
       return readStream.pipe(transformer);
-    })();
+    });
     readStream.on('data', (chunk: any) => result.write(chunk));
     readStream.on('end', () => result.end());
     readStream.on('error', (error: any) => {

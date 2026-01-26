@@ -1,13 +1,16 @@
 import { ImageListService } from '@app/image/image-list.service';
 import { ImageStreamService } from '@app/image/image-stream.service';
-import { Controller, Get, NotFoundException, Req, Res } from '@nestjs/common';
+import { Controller, Get, Logger, NotFoundException, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UrlAccessToken } from './access-token/AccessToken.decorator';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
+import { benchmark } from './util/benchmark';
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private readonly imageListService: ImageListService,
     private readonly imageStreamService: ImageStreamService,
@@ -26,15 +29,17 @@ export class AppController {
     const width = request.query['w']?.toString();
     const height = request.query['h']?.toString();
 
-    await this.imageStreamService.streamImage(
-      name,
-      { width, height },
-      {
-        contentType: (contentType: string) => response.contentType(contentType),
-        write: (chunk: any) => response.write(chunk),
-        end: () => response.end(),
-      },
-    );
+    await benchmark(this.logger, 'getStaticImage', () => {
+      return this.imageStreamService.streamImage(
+        name,
+        { width, height },
+        {
+          contentType: (contentType: string) => response.contentType(contentType),
+          write: (chunk: any) => response.write(chunk),
+          end: () => response.end(),
+        },
+      );
+    });
   }
 
   @Get('api/public/filenames')
