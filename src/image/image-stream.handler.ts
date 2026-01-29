@@ -1,3 +1,4 @@
+import { LocalFileHandler } from '@/local-file/local-file.handler';
 import { FilenameModel } from '@/model/Filename.model';
 import { ImageDimensionModel } from '@/model/ImageDimension.model';
 import {
@@ -8,27 +9,18 @@ import {
   WEBP_IMAGE_FORMAT,
 } from '@/model/ImageFormat.model';
 import { benchmark } from '@/util/benchmark';
-import { LocalFileService } from '@app/local-file/local-file.service';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import * as sharp from 'sharp';
-import { ImageDimensionService } from './image-dimension.service';
-import { ImageFormatService } from './image-format.service';
+import { ImageDimensionHandler } from './image-dimension.handler';
+import { ImageFormatHandler } from './image-format.handler';
 
-@Injectable()
-export class ImageStreamService {
-  private readonly logger = new Logger(ImageStreamService.name);
+export class ImageStreamHandler {
+  private readonly logger = new Logger(ImageStreamHandler.name);
 
-  constructor(
-    private readonly localFileService: LocalFileService,
-    private readonly imageFormatService: ImageFormatService,
-    private readonly imageDimensionService: ImageDimensionService,
-  ) {}
+  private readonly imageDimensionHandler = new ImageDimensionHandler(() => this.localFile());
+  private readonly imageFormatHandler = new ImageFormatHandler(() => this.localFile());
+
+  constructor(private readonly localFile: () => LocalFileHandler) {}
 
   async streamImage(
     name: string,
@@ -42,12 +34,12 @@ export class ImageStreamService {
       const filenameSrc = new FilenameModel(name);
 
       const isFile = await benchmark(this.logger, 'isFile', () => {
-        return this.localFileService.isFile(filenameSrc.toString());
+        return this.localFile().isFile(filenameSrc.toString());
       });
       if (isFile) return filenameSrc;
 
       const formats = await benchmark(this.logger, 'getFormat', () => {
-        return this.imageFormatService.getFormatsByName(filenameReq.name);
+        return this.imageFormatHandler.getFormatsByName(filenameReq.name);
       });
       const [format] = formats;
       if (format) return new FilenameModel(filenameReq.name, format.ext);
@@ -69,7 +61,7 @@ export class ImageStreamService {
       if (!dimenReq.isSet()) return undefined;
 
       const dimenImg = await benchmark(this.logger, 'getFileDimensionByFilename', () => {
-        return this.imageDimensionService.getFileDimensionByFilename(filenameSrc.toString());
+        return this.imageDimensionHandler.getFileDimensionByFilename(filenameSrc.toString());
       });
 
       const isSameWidth = dimenReq.width === dimenImg?.width;
@@ -124,7 +116,7 @@ export class ImageStreamService {
 
     const readStream = await benchmark(this.logger, 'readStream', async () => {
       const readStream = await benchmark(this.logger, 'readStreamFilename', () => {
-        return this.localFileService.readStreamFilename(filenameSrc.toString());
+        return this.localFile().readStreamFilename(filenameSrc.toString());
       });
       if (!transformer) return readStream;
 

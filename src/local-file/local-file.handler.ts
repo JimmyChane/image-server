@@ -1,39 +1,46 @@
 import { wrapWhite } from '@/util/ConsoleTextWrapper';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { createReadStream, createWriteStream, existsSync, lstatSync, mkdirSync, readdirSync, unlink } from 'node:fs';
+import { lstat } from 'fs/promises';
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  lstatSync,
+  readdirSync,
+  ReadStream,
+  unlink,
+  WriteStream,
+} from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
 
 @Injectable()
-export class LocalFileService implements OnModuleInit {
-  private readonly logger = new Logger(LocalFileService.name);
+export class LocalFileHandler implements OnModuleInit {
+  private readonly logger = new Logger(LocalFileHandler.name);
+
   private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
-  private readonly shouldCreateFolder: boolean = false;
+  private readonly INIT_CREATE_FOLDER: boolean = false;
 
-  onModuleInit(): void {
-    try {
-      const isExist = existsSync(this.PUBLIC_DIR);
-      const isDirectory = isExist && lstatSync(this.PUBLIC_DIR).isDirectory();
+  async onModuleInit(): Promise<void> {
+    const isExist = existsSync(this.PUBLIC_DIR);
+    const stat = await lstat(this.PUBLIC_DIR).catch((e: Error) => e);
+    if (stat instanceof Error) throw new Error('Failed to read stat of directory');
 
-      if (isDirectory) {
-        this.logger.log(`Directory: ${wrapWhite(this.PUBLIC_DIR)}`);
-        return;
-      }
-
-      if (this.shouldCreateFolder) {
-        mkdirSync(this.PUBLIC_DIR, { recursive: false });
-        this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
-      } else {
-        throw new Error(`Directory Not Found: ${wrapWhite(this.PUBLIC_DIR)}`);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error(error.message);
-      } else {
-        this.logger.error(error);
-      }
-      throw error;
+    const isDirectory = isExist && stat.isDirectory();
+    if (isDirectory) {
+      this.logger.log(`Directory: ${wrapWhite(this.PUBLIC_DIR)}`);
+      return;
     }
+
+    if (!this.INIT_CREATE_FOLDER) {
+      throw new Error(`Directory Not Found: ${wrapWhite(this.PUBLIC_DIR)}`);
+    }
+
+    const mkdirError = await mkdir(this.PUBLIC_DIR, { recursive: false }).catch((e: Error) => e);
+    if (mkdirError instanceof Error) throw new Error('Failed to create directory');
+
+    this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
   }
 
   private asFilenamePath(filename: string): string {
@@ -43,6 +50,8 @@ export class LocalFileService implements OnModuleInit {
   async getFilenames(): Promise<string[]> {
     return readdirSync(this.PUBLIC_DIR).filter((filename) => {
       const filePath = this.asFilenamePath(filename);
+      // TODO: detect supported file types
+      // if (!filePath.endsWith('.jpg')) return false;
       return existsSync(filePath) && lstatSync(filePath).isFile();
     });
   }
@@ -60,7 +69,7 @@ export class LocalFileService implements OnModuleInit {
     });
   }
 
-  async readStreamFilename(filename: string): Promise<import('fs').ReadStream> {
+  async readStreamFilename(filename: string): Promise<ReadStream> {
     filename = validateFilename(filename);
     const isFile = this.isFile(filename);
     if (!isFile) throw new Error('no such file');
@@ -68,7 +77,7 @@ export class LocalFileService implements OnModuleInit {
     return read;
   }
 
-  async writeStreamFilename(filename: string): Promise<import('fs').WriteStream> {
+  async writeStreamFilename(filename: string): Promise<WriteStream> {
     filename = validateFilename(filename);
     const isFile = this.isFile(filename);
     if (isFile) throw new Error('file already exist');

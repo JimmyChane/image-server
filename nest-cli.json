@@ -17,20 +17,6 @@
       "entryFile": "index",
       "sourceRoot": "libs/app-env/src",
       "compilerOptions": { "tsConfigPath": "libs/app-env/tsconfig.lib.json" }
-    },
-    "image": {
-      "type": "library",
-      "root": "libs/image",
-      "entryFile": "index",
-      "sourceRoot": "libs/image/src",
-      "compilerOptions": { "tsConfigPath": "libs/image/tsconfig.lib.json" }
-    },
-    "local-file": {
-      "type": "library",
-      "root": "libs/local-file",
-      "entryFile": "index",
-      "sourceRoot": "libs/local-file/src",
-      "compilerOptions": { "tsConfigPath": "libs/local-file/tsconfig.lib.json" }
     }
   }
 }

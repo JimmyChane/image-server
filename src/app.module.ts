@@ -1,6 +1,5 @@
 import { AppConfigModule } from '@app/app-config/app-config.module';
 import { AppEnvModule } from '@app/app-env/app-env.module';
-import { ImageModule } from '@app/image/image.module';
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -9,7 +8,7 @@ import { CacheControlInterceptor } from './cache-control/CacheControl.intercepto
 import { ExpiresInterceptor } from './expires/Expires.interceptor';
 
 @Module({
-  imports: [AppEnvModule, AppConfigModule, ImageModule],
+  imports: [AppEnvModule, AppConfigModule],
   controllers: [AppController],
   providers: [
     AppService,

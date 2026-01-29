@@ -1,21 +1,26 @@
-import { ImageListService } from '@app/image/image-list.service';
-import { ImageStreamService } from '@app/image/image-stream.service';
-import { Controller, Get, Logger, NotFoundException, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, NotFoundException, OnModuleInit, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AccessTokenGuard } from './access-token/AccessToken.guard';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
+import { ImageListHandler } from './image/image-list.handler';
+import { ImageStreamHandler } from './image/image-stream.handler';
+import { LocalFileHandler } from './local-file/local-file.handler';
 import { benchmark } from './util/benchmark';
 
 @Controller()
 @UseGuards(AccessTokenGuard)
-export class AppController {
+export class AppController implements OnModuleInit {
   private readonly logger = new Logger(AppController.name);
 
-  constructor(
-    private readonly imageListService: ImageListService,
-    private readonly imageStreamService: ImageStreamService,
-  ) {}
+  private readonly localFile = new LocalFileHandler();
+
+  private readonly imageListHandler = new ImageListHandler(() => this.localFile);
+  private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
+
+  onModuleInit(): Promise<void> {
+    return this.localFile.onModuleInit();
+  }
 
   @Get('/public/*path')
   @CacheControl({ maxAge: 604_800, public: true })
@@ -30,7 +35,7 @@ export class AppController {
     const height = request.query['h']?.toString();
 
     await benchmark(this.logger, 'getStaticImage', () => {
-      return this.imageStreamService.streamImage(
+      return this.imageStreamHandler.streamImage(
         name,
         { width, height },
         {
@@ -44,7 +49,7 @@ export class AppController {
 
   @Get('/api/filenames')
   async getStaticImageFilenames(): Promise<string[]> {
-    const filenames = await this.imageListService.getStaticImageFilenames();
+    const filenames = await this.imageListHandler.getStaticImageFilenames();
     return filenames.map((filename) => {
       return encodeURIComponent(filename).toString();
     });

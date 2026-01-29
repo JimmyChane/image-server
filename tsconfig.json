@@ -35,11 +35,7 @@
       "@app/app-config": ["libs/app-config/src"],
       "@app/app-config/*": ["libs/app-config/src/*"],
       "@app/app-env": ["libs/app-env/src"],
-      "@app/app-env/*": ["libs/app-env/src/*"],
-      "@app/image": ["libs/image/src"],
-      "@app/image/*": ["libs/image/src/*"],
-      "@app/local-file": ["libs/local-file/src"],
-      "@app/local-file/*": ["libs/local-file/src/*"]
+      "@app/app-env/*": ["libs/app-env/src/*"]
     }
   }
 }
