@@ -1,26 +1,33 @@
 import { wrapWhite } from '@/util/ConsoleTextWrapper';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { lstat } from 'fs/promises';
-import {
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  lstatSync,
-  readdirSync,
-  ReadStream,
-  unlink,
-  WriteStream,
-} from 'node:fs';
+import { existsSync, lstatSync, ReadStream, WriteStream } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
+import { LocalFileDeleteHandler } from './local-file-delete.handler';
+import { LocalFileListHandler } from './local-file-list.handler';
+import { LocalFileStreamHandler } from './local-file-stream.handler';
 
-@Injectable()
 export class LocalFileHandler implements OnModuleInit {
   private readonly logger = new Logger(LocalFileHandler.name);
 
-  private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
-  private readonly INIT_CREATE_FOLDER: boolean = false;
+  readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
+  readonly INIT_CREATE_FOLDER: boolean = false;
+
+  readonly FILE_TYPES: string[];
+
+  private readonly localFileDeleteHandler = new LocalFileDeleteHandler(() => this);
+  private readonly localFileListHandler = new LocalFileListHandler(() => this);
+  private readonly localFileStreamHandler = new LocalFileStreamHandler(() => this);
+
+  constructor(option: { fileTypes: string[] }) {
+    for (const fileType of option.fileTypes) {
+      if (fileType.includes('.')) throw new Error('fileTypes shall not include "."');
+    }
+
+    this.FILE_TYPES = option.fileTypes.map((fileType) => `.${fileType}`);
+  }
 
   async onModuleInit(): Promise<void> {
     const isExist = existsSync(this.PUBLIC_DIR);
@@ -43,84 +50,24 @@ export class LocalFileHandler implements OnModuleInit {
     this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
   }
 
-  private asFilenamePath(filename: string): string {
-    return join(this.PUBLIC_DIR, filename);
-  }
-
-  async getFilenames(): Promise<string[]> {
-    return readdirSync(this.PUBLIC_DIR).filter((filename) => {
-      const filePath = this.asFilenamePath(filename);
-      // TODO: detect supported file types
-      // if (!filePath.endsWith('.jpg')) return false;
-      return existsSync(filePath) && lstatSync(filePath).isFile();
-    });
-  }
-
-  async deleteFilename(filename: string): Promise<unknown> {
-    filename = validateFilename(filename);
-    const isFile = this.isFile(filename);
-    if (!isFile) return null;
-    const filePath = this.asFilenamePath(filename);
-    return await new Promise((resolve, reject) => {
-      unlink(filePath, (error) => {
-        if (error) reject(error);
-        else resolve(filename);
-      });
-    });
+  async getList(): Promise<string[]> {
+    return this.localFileListHandler.getList();
   }
 
   async readStreamFilename(filename: string): Promise<ReadStream> {
-    filename = validateFilename(filename);
-    const isFile = this.isFile(filename);
-    if (!isFile) throw new Error('no such file');
-    const read = createReadStream(this.asFilenamePath(filename));
-    return read;
+    return this.localFileStreamHandler.readStreamFilename(filename);
   }
 
   async writeStreamFilename(filename: string): Promise<WriteStream> {
-    filename = validateFilename(filename);
-    const isFile = this.isFile(filename);
-    if (isFile) throw new Error('file already exist');
-    const write = createWriteStream(this.asFilenamePath(filename));
-    return write;
+    return this.localFileStreamHandler.writeStreamFilename(filename);
   }
 
   isFile(filename: string): boolean {
-    const filePath = this.asFilenamePath(filename);
+    const filePath = this.getAbsolutePathOfFilename(filename);
     return existsSync(filePath) && lstatSync(filePath).isFile();
   }
+
   getAbsolutePathOfFilename(filename: string): string {
-    return this.asFilenamePath(filename);
+    return join(this.PUBLIC_DIR, filename);
   }
-}
-
-export function filenameStartsWiths(filename: string, ...characters: string[]): string {
-  for (const character of characters) {
-    if (filename.startsWith(character)) return character;
-  }
-  return '';
-}
-export function filenameIncludes(filename: string, ...characters: string[]): string {
-  for (const character of characters) {
-    if (filename.includes(character)) return character;
-  }
-  return '';
-}
-export function validateFilename(filename: string): string {
-  if (typeof filename !== 'string') {
-    throw new Error(`filename is not string, ${filename}`);
-  }
-
-  const invalidStart = filenameStartsWiths(filename, ...['.', '/', '\\']);
-  if (invalidStart) {
-    throw new Error(`invalid filename format, ${filename}, ${invalidStart}`);
-  }
-
-  const invalidCharacters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
-  const invalidChar = filenameIncludes(filename, ...invalidCharacters);
-  if (invalidChar) {
-    throw new Error(`invalid filename character, ${filename}, ${invalidChar}`);
-  }
-
-  return filename;
 }

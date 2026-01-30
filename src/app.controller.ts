@@ -6,6 +6,7 @@ import { Expires } from './expires/Expires.decorator';
 import { ImageListHandler } from './image/image-list.handler';
 import { ImageStreamHandler } from './image/image-stream.handler';
 import { LocalFileHandler } from './local-file/local-file.handler';
+import { IMAGE_FORMAT_MAPS } from './model/ImageFormat.model';
 import { benchmark } from './util/benchmark';
 
 @Controller()
@@ -13,8 +14,9 @@ import { benchmark } from './util/benchmark';
 export class AppController implements OnModuleInit {
   private readonly logger = new Logger(AppController.name);
 
-  private readonly localFile = new LocalFileHandler();
-
+  private readonly localFile = new LocalFileHandler({
+    fileTypes: Object.values(IMAGE_FORMAT_MAPS).map((format) => format.ext),
+  });
   private readonly imageListHandler = new ImageListHandler(() => this.localFile);
   private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
 

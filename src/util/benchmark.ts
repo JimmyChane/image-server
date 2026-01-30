@@ -8,10 +8,10 @@ export async function benchmark<T>(logger: Logger, name: string, run: () => Mayb
     return await run();
   } catch (error) {
     const elapsed = performance.now() - now;
-    logger.debug(`${name} took: ${elapsed.toFixed(2)}ms`);
+    logger.debug(`[${name}] took: ${elapsed.toFixed(2)}ms`);
     throw error;
   } finally {
     const elapsed = performance.now() - now;
-    logger.debug(`${name} took: ${elapsed.toFixed(2)}ms`);
+    logger.debug(`[${name}] took: ${elapsed.toFixed(2)}ms`);
   }
 }
