@@ -20,8 +20,9 @@ export class AppController implements OnModuleInit {
   private readonly imageListHandler = new ImageListHandler(() => this.localFile);
   private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
 
-  onModuleInit(): Promise<void> {
-    return this.localFile.onModuleInit();
+  async onModuleInit(): Promise<void> {
+    await this.localFile.onModuleInit();
+    this.logger.log('AppController onModuleInit');
   }
 
   @Get('/public/*path')
