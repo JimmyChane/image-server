@@ -2,19 +2,19 @@ name: Local Docker Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   deploy:
-      # This is the magic line that tells GitHub to use YOUR laptop
-      runs-on: self-hosted 
-  
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-  
-        - name: Deploy with Docker Compose
-          run: |
-            # This runs directly on your server laptop's terminal
-            docker compose pull
-            docker compose up -d --build
+    # This is the magic line that tells GitHub to use YOUR laptop
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy with Docker Compose
+        run:
+          # This runs directly on your server laptop's terminal
+          docker-compose down
+          docker-compose up -d
