@@ -16,4 +16,4 @@ jobs:
       - name: Deploy with Docker Compose
         run:
           # This runs directly on your server laptop's terminal
-          docker-compose up -d --build --remove-orphans
+          docker compose up -d --build --remove-orphans

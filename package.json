@@ -6,8 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "docker-compose up",
-    "dev:down": "docker-compose down",
+    "dev": "docker compose up -d --build",
+    "dev:down": "docker compose down",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
