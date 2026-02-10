@@ -6,14 +6,15 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "docker compose up -d --build",
-    "dev:down": "docker compose down",
+    "dev": "docker compose up",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "nest build && node dist/main",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"test/**/jest-e2e.*\" \"libs/**/*.ts\" \"nest-cli.*\" \"package.json\" \"tsconfig.*\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "up": "docker compose up -d --build",
+    "down": "docker compose down"
   },
   "dependencies": {
     "@chanzor/nest-leaf": "^0.0.4",
