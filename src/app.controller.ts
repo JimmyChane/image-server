@@ -15,7 +15,11 @@ export class AppController implements OnModuleInit {
   private readonly logger = new Logger(AppController.name);
 
   private readonly localFile = new LocalFileHandler({
-    fileTypes: Object.values(IMAGE_FORMAT_MAPS).map((format) => format.ext),
+    fileTypes: Object.values(IMAGE_FORMAT_MAPS).reduce((formats: string[], image) => {
+      formats.push(image.ext.toLowerCase());
+      formats.push(image.ext.toUpperCase());
+      return formats;
+    }, []),
   });
   private readonly imageListHandler = new ImageListHandler(() => this.localFile);
   private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
