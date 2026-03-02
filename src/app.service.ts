@@ -1,14 +1,14 @@
 import { AppEnvService } from '@app/app-env/app-env.service';
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
-export class AppService implements OnApplicationBootstrap {
+export class AppService implements OnModuleInit {
   private readonly versionName = 'v1.0.0';
   private readonly logger = new Logger(AppService.name);
 
   constructor(private readonly envService: AppEnvService) {}
 
-  onApplicationBootstrap(): void {
+  onModuleInit(): void {
     this.logger.log(`App Version ${this.versionName}`);
 
     this.logger.log(`APP_ENV_MODE ${this.envService.APP_ENV_MODE}`);

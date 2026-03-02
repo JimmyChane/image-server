@@ -54,6 +54,7 @@ export class AppController implements OnModuleInit {
     });
   }
 
+  // TODO: GET as pagable
   @Get('/api/filenames')
   async getStaticImageFilenames(): Promise<string[]> {
     const filenames = await this.imageListHandler.getStaticImageFilenames();

@@ -1,19 +1,51 @@
-# Stage 1: Build the app
-FROM node:22-alpine AS build
+##############################
+# INSTALL DEPENDENCIES
+##############################
 
-# Set working directory
-WORKDIR /app
+FROM node:22-alpine AS deps
+WORKDIR /usr/src/app
 
-# Install Dependencies
 COPY package*.json ./
 RUN npm install
 
-# Build
+##############################
+# DEV
+##############################
+
+FROM node:22-alpine AS development
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+
+CMD ["npm", "run", "start:dev"]
+
+##############################
+# BUILD
+##############################
+
+FROM node:22-alpine AS build
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY . .
+
 RUN npm run build
+RUN npm prune --production
 
-# Run the Node.js application when the container launches
-CMD ["npm", "run", "start:prod"]
+##############################
+# PRODUCTION
+##############################
 
-# Make port 3000 available to the world outside this container
+FROM node:22-alpine AS run
+WORKDIR /usr/src/app
+
+USER node
+
+COPY --from=build --chown=node:node /usr/src/app/package*.json ./
+COPY --from=build --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --from=build --chown=node:node /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main.js"]
+
 EXPOSE 3000

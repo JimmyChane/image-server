@@ -2,3 +2,7 @@ node_modules
 dist
 npm-debug.log
 temp
+Dockerfile
+.dockerignore
+.git
+.env

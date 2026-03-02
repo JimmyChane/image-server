@@ -13,8 +13,8 @@
     "start:prod": "nest build && node dist/main",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"test/**/jest-e2e.*\" \"libs/**/*.ts\" \"nest-cli.*\" \"package.json\" \"tsconfig.*\"",
     "type-check": "tsc --noEmit",
-    "up": "docker compose up -d --build",
-    "down": "docker compose down"
+    "up": "docker compose -f docker-compose.prod.yml up -d --build",
+    "down": "docker compose -f docker-compose.prod.yml down"
   },
   "dependencies": {
     "@chanzor/nest-leaf": "^0.0.4",

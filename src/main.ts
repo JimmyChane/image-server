@@ -8,6 +8,7 @@ async function bootstrap(): Promise<void> {
   const appEnvService = app.get(AppEnvService);
   const appConfigService = app.get(AppConfigService);
 
+  app.enableShutdownHooks();
   app.enableCors(appConfigService.buildCorsOption());
 
   await app.listen(appEnvService.APP_PORT);

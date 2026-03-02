@@ -3,38 +3,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     restart: unless-stopped
     expose:
       - '3000'
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: dev
       PORT: ${PORT}
       ALLOWED_CROSS_ORIGIN: ${ALLOWED_CROSS_ORIGIN}
       ACCESS_TOKEN: ${ACCESS_TOKEN}
     volumes:
-      - .:/app
-      - /app/dist
-      - /mnt/d/image_storage:/app/temp/image_storage # This is the direct mount
+      - .:/usr/src/app
+      - /usr/src/app/dist
+      - /mnt/d/image_storage:/usr/src/app/temp/image_storage
     develop:
       watch:
         - path: ./package.json
-          action: sync
-          target: /app/package.json
+          action: rebuild
+          target: /usr/src/app/package.json
         - path: ./package-lock.json
-          action: sync
-          target: /app/package-lock.json
+          action: rebuild
+          target: /usr/src/app/package-lock.json
         - path: ./src
           action: sync
-          target: /app/src
-    deploy:
-      replicas: 3
-      resources:
-        reservations:
-          cpus: '0.2'
-          memory: 512M
-        limits:
-          cpus: '1.5'
-          memory: 1G
+          target: /usr/src/app/src
     command: npm run start:dev
   nginx:
     image: nginx:latest
