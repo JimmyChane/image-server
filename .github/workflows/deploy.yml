@@ -1,19 +1,22 @@
-name: Local Docker Deploy
+name: Local Deploy
 
 on:
   push:
-    branches: ['main']
+    branches: [main]
 
 jobs:
   deploy:
-    # This is the magic line that tells GitHub to use YOUR laptop
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy with Docker Compose
-        run:
-          # This runs directly on your server laptop's terminal
-          docker compose up -d --build --remove-orphans
+      - name: Create .env file
+        run: |
+          echo "ALLOWED_CROSS_ORIGIN=${{ vars.ALLOWED_CROSS_ORIGIN}}" > .env
+          echo "ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}" >> .env
+
+      - name: Start Docker Containers
+        run: |
+          npm run up
