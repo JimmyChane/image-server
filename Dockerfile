@@ -48,4 +48,4 @@ COPY --from=build --chown=node:node /usr/src/app/dist ./dist
 
 CMD ["node", "dist/main.js"]
 
-EXPOSE 3000
+EXPOSE 8001
