@@ -7,9 +7,11 @@ services:
     restart: unless-stopped
     expose:
       - 8001
+    env_file:
+      - .env
     environment:
       NODE_ENV: dev
-      PORT: ${PORT}
+      PORT: 8001
       ALLOWED_CROSS_ORIGIN: ${ALLOWED_CROSS_ORIGIN}
       ACCESS_TOKEN: ${ACCESS_TOKEN}
     volumes:
