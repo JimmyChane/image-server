@@ -12,10 +12,10 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis Connecting...');
 
     const redisList = [
-      new Redis({ host: 'redis-1', port: 6379 }),
-      new Redis({ host: 'redis-2', port: 6379 }),
-      new Redis({ host: 'redis-3', port: 6379 }),
-    ];
+      new Redis({ host: 'redis-1', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({ host: 'redis-2', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({ host: 'redis-3', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+    ] as const;
     const clientPromises = redisList.map((redis) => {
       return new Promise<Redis>((r) => {
         const onConnect = () => {
@@ -43,6 +43,8 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     this.redlock.on('error', (error) => {
       this.logger.error('Redlock error', error);
     });
+
+    await this.verifyIsolation();
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -64,11 +66,37 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis Disconnected');
   }
 
+  private async verifyIsolation(): Promise<void> {
+    const randomIndex = Math.floor(Math.random() * this.clients.length);
+    const client = this.clients.at(randomIndex);
+    const verificationValue = `source-is-redis-${randomIndex + 1}`;
+
+    if (!client) throw new Error('Expecting client');
+
+    await client.set('verification_test', verificationValue);
+
+    const values = await Promise.all(this.clients.map((client) => client.get('verification_test')));
+
+    values.forEach((value, index) => {
+      this.logger.log(`Redis-${index + 1} value: ${value}`);
+    });
+
+    const verifiedValues = values.filter((value) => value === verificationValue);
+
+    if (verifiedValues.length === 1) {
+      this.logger.log(`All ${this.clients.length} Redis instances are independent.`);
+    } else {
+      this.logger.error('Redis instances are sharing data! Check your hostnames.');
+    }
+
+    await Promise.all(this.clients.map((client) => client.del('verification_test')));
+  }
+
   async acquire(resource: string, ttl: number): Promise<Lock> {
     return await this.redlock.acquire([resource], ttl);
   }
 
   async using<T>(resource: string, ttl: number, handler: () => Promise<T>): Promise<T> {
-    return await this.redlock.using([resource], ttl, async (signal) => handler());
+    return await this.redlock.using([resource], ttl, async () => handler());
   }
 }
