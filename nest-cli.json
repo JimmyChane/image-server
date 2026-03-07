@@ -17,6 +17,13 @@
       "entryFile": "index",
       "sourceRoot": "libs/app-env/src",
       "compilerOptions": { "tsConfigPath": "libs/app-env/tsconfig.lib.json" }
+    },
+    "redlock": {
+      "type": "library",
+      "root": "libs/redlock",
+      "entryFile": "index",
+      "sourceRoot": "libs/redlock/src",
+      "compilerOptions": { "tsConfigPath": "libs/redlock/tsconfig.lib.json" }
     }
   }
 }

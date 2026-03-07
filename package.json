@@ -26,6 +26,8 @@
     "@types/cors": "^2.8.17",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
+    "ioredis": "^5.10.0",
+    "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.0"
@@ -80,7 +82,8 @@
     ],
     "moduleNameMapper": {
       "^@app/app-config(|/.*)$": "<rootDir>/libs/app-config/src/$1",
-      "^@app/app-env(|/.*)$": "<rootDir>/libs/app-env/src/$1"
+      "^@app/app-env(|/.*)$": "<rootDir>/libs/app-env/src/$1",
+      "^@app/redlock(|/.*)$": "<rootDir>/libs/redlock/src/$1"
     }
   },
   "engines": {

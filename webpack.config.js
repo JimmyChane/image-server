@@ -5,7 +5,7 @@ module.exports = function (options, webpack) {
 
   return {
     ...options,
-    devtool: isDev ? 'source-map' : false,
+    devtool: 'source-map',
 
     output: {
       ...options.output, // Preserve existing output options like 'path', 'filename', etc.

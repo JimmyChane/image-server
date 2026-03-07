@@ -1,5 +1,6 @@
 import { AppConfigModule } from '@app/app-config/app-config.module';
 import { AppEnvModule } from '@app/app-env/app-env.module';
+import { RedlockModule } from '@app/redlock/redlock.module';
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -8,7 +9,7 @@ import { CacheControlInterceptor } from './cache-control/CacheControl.intercepto
 import { ExpiresInterceptor } from './expires/Expires.interceptor';
 
 @Module({
-  imports: [AppEnvModule, AppConfigModule],
+  imports: [AppEnvModule, AppConfigModule, RedlockModule],
   controllers: [AppController],
   providers: [
     AppService,

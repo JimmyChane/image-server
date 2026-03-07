@@ -1,5 +1,17 @@
-import { Controller, Get, Logger, NotFoundException, OnModuleInit, Req, Res, UseGuards } from '@nestjs/common';
+import { RedlockService } from '@app/redlock/redlock.service';
+import {
+  ConflictException,
+  Controller,
+  Get,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
+import { ExecutionError } from 'redlock';
 import { AccessTokenGuard } from './access-token/AccessToken.guard';
 import { CacheControl } from './cache-control/CacheControl.decorator';
 import { Expires } from './expires/Expires.decorator';
@@ -24,6 +36,8 @@ export class AppController implements OnModuleInit {
   private readonly imageListHandler = new ImageListHandler(() => this.localFile);
   private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
 
+  constructor(private readonly redlockService: RedlockService) {}
+
   async onModuleInit(): Promise<void> {
     await this.localFile.onModuleInit();
     this.logger.log('AppController onModuleInit');
@@ -41,17 +55,23 @@ export class AppController implements OnModuleInit {
     const width = request.query['w']?.toString();
     const height = request.query['h']?.toString();
 
-    await benchmark(this.logger, 'getStaticImage', () => {
-      return this.imageStreamHandler.streamImage(
-        name,
-        { width, height },
-        {
-          contentType: (contentType: string) => response.contentType(contentType),
-          write: (chunk: any) => response.write(chunk),
-          end: () => response.end(),
-        },
-      );
-    });
+    const error = await this.redlockService
+      .using(name, 1000, async () => {
+        await benchmark(this.logger, 'getStaticImage', async () => {
+          await this.imageStreamHandler.streamImage(
+            name,
+            { width, height },
+            {
+              contentType: (contentType: string) => response.contentType(contentType),
+              write: (chunk: any) => response.write(chunk),
+              end: () => response.end(),
+            },
+          );
+        });
+      })
+      .catch((e: Error) => e);
+
+    if (error instanceof ExecutionError) throw new ConflictException();
   }
 
   // TODO: GET as pagable

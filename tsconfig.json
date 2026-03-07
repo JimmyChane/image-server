@@ -14,7 +14,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "tsBuildInfoFile": "./build-cache/.tsbuildinfo",
-
     "strict": true,
     "strictBindCallApply": true,
     "strictNullChecks": true,
@@ -29,13 +28,14 @@
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": true,
     "strictBuiltinIteratorReturn": true,
-
     "paths": {
       "@/*": ["./src/*"],
       "@app/app-config": ["libs/app-config/src"],
       "@app/app-config/*": ["libs/app-config/src/*"],
       "@app/app-env": ["libs/app-env/src"],
-      "@app/app-env/*": ["libs/app-env/src/*"]
+      "@app/app-env/*": ["libs/app-env/src/*"],
+      "@app/redlock": ["libs/redlock/src"],
+      "@app/redlock/*": ["libs/redlock/src/*"]
     }
   }
 }

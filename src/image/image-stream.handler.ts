@@ -9,6 +9,7 @@ import {
   WEBP_IMAGE_FORMAT,
 } from '@/model/ImageFormat.model';
 import { benchmark } from '@/util/benchmark';
+import { wait } from '@chanzor/utils';
 import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import * as sharp from 'sharp';
 import { ImageDimensionHandler } from './image-dimension.handler';
@@ -27,6 +28,8 @@ export class ImageStreamHandler {
     option: { width?: number | string; height?: number | string },
     result: { contentType: (contentType: string) => void; write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
+    await wait(1000);
+
     const dimenReq = new ImageDimensionModel(option.width, option.height);
     const filenameReq = new FilenameModel(name);
 
