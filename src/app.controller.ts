@@ -1,5 +1,6 @@
 import { RedlockService } from '@app/redlock/redlock.service';
 import {
+  BadRequestException,
   ConflictException,
   Controller,
   Get,
@@ -47,7 +48,12 @@ export class AppController implements OnModuleInit {
   @CacheControl({ maxAge: 604_800, public: true })
   @Expires(604_800)
   async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
-    const paths = request.path.split('/');
+    const paths = request.path
+      .split('/')
+      .filter((p) => p.length)
+      .slice(1);
+    if (paths.length > 1) throw new BadRequestException('Too many paths');
+
     const lastPath = paths.at(-1);
     if (typeof lastPath !== 'string') throw new NotFoundException();
 
@@ -72,6 +78,7 @@ export class AppController implements OnModuleInit {
       .catch((e: Error) => e);
 
     if (error instanceof ExecutionError) throw new ConflictException();
+    if (error instanceof Error) throw error;
   }
 
   // TODO: GET as pagable
