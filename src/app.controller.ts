@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+// @ts-ignore
 import { ExecutionError } from 'redlock';
 import { AccessTokenGuard } from './access-token/AccessToken.guard';
 import { CacheControl } from './cache-control/CacheControl.decorator';

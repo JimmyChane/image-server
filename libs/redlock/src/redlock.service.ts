@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Redis from 'ioredis';
+// @ts-ignore
 import Redlock, { Lock } from 'redlock';
 
 @Injectable()
@@ -40,7 +41,7 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     });
 
     // Handle errors (important so your app doesn't crash)
-    this.redlock.on('error', (error) => {
+    this.redlock.on('error', (error: Error) => {
       this.logger.error('Redlock error', error);
     });
 
