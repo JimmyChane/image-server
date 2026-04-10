@@ -11,7 +11,7 @@ import {
 import { benchmark } from '@/util/benchmark';
 import { wait } from '@chanzor/utils';
 import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { ImageDimensionHandler } from './image-dimension.handler';
 import { ImageFormatHandler } from './image-format.handler';
 
