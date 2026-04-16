@@ -15,7 +15,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"test/**/jest-e2e.*\" \"libs/**/*.ts\" \"nest-cli.*\" \"package.json\" \"tsconfig.*\"",
     "type-check": "tsc --noEmit",
     "up": "docker compose -f docker-compose.prod.yml up -d --build --remove-orphans",
-    "down": "docker compose -f docker-compose.prod.yml down"
+    "down": "docker compose -f docker-compose.prod.yml down",
+    "stop": "docker compose -f docker-compose.prod.yml stop"
   },
   "dependencies": {
     "@chanzor/nest-leaf": "^0.0.4",
