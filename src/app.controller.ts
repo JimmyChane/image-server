@@ -14,13 +14,13 @@ import {
 import { Request, Response } from 'express';
 // @ts-ignore
 import { ExecutionError } from 'redlock';
-import { AccessTokenGuard } from './access-token/AccessToken.guard';
-import { CacheControl } from './cache-control/CacheControl.decorator';
-import { Expires } from './expires/Expires.decorator';
+import { AccessTokenGuard } from './access-token/access-token.guard';
+import { CacheControl } from './cache-control/cache-control.decorator';
+import { Expires } from './expires/expires.decorator';
 import { ImageListHandler } from './image/image-list.handler';
 import { ImageStreamHandler } from './image/image-stream.handler';
 import { LocalFileHandler } from './local-file/local-file.handler';
-import { IMAGE_FORMAT_MAPS } from './model/ImageFormat.model';
+import { IMAGE_FORMAT_MAPS } from './model/image-format.model';
 import { benchmark } from './util/benchmark';
 
 @Controller()

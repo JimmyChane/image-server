@@ -1,6 +1,6 @@
 import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/Filename.model';
-import { IMAGE_FORMAT_LIST, ImageFormatModel } from '@/model/ImageFormat.model';
+import { FilenameModel } from '@/model/filename.model';
+import { IMAGE_FORMAT_LIST, ImageFormatModel } from '@/model/image-format.model';
 
 export class ImageFormatHandler {
   constructor(private readonly localFile: () => LocalFileHandler) {}

@@ -1,13 +1,13 @@
 import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/Filename.model';
-import { ImageDimensionModel } from '@/model/ImageDimension.model';
+import { FilenameModel } from '@/model/filename.model';
+import { ImageDimensionModel } from '@/model/image-dimension.model';
 import {
   IMAGE_FORMAT_LIST,
   JPEG_IMAGE_FORMAT,
   JPG_IMAGE_FORMAT,
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
-} from '@/model/ImageFormat.model';
+} from '@/model/image-format.model';
 import { benchmark } from '@/util/benchmark';
 import { wait } from '@chanzor/utils';
 import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';

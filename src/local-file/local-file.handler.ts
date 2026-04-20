@@ -1,4 +1,4 @@
-import { wrapWhite } from '@/util/ConsoleTextWrapper';
+import { wrapWhite } from '@/util/console.text-wrapper';
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { lstat } from 'fs/promises';
 import { existsSync, lstatSync, ReadStream, WriteStream } from 'node:fs';

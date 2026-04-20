@@ -1,6 +1,6 @@
 import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/Filename.model';
-import { WEBP_IMAGE_FORMAT } from '@/model/ImageFormat.model';
+import { FilenameModel } from '@/model/filename.model';
+import { WEBP_IMAGE_FORMAT } from '@/model/image-format.model';
 import sharp from 'sharp';
 
 export class ImageDimensionHandler {
