@@ -77,17 +77,16 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     await client.set('verification_test', verificationValue);
 
     const values = await Promise.all(this.clients.map((client) => client.get('verification_test')));
-
-    values.forEach((value, index) => {
-      this.logger.log(`Redis-${index + 1} value: ${value}`);
-    });
-
     const verifiedValues = values.filter((value) => value === verificationValue);
 
-    if (verifiedValues.length === 1) {
-      this.logger.log(`All ${this.clients.length} Redis instances are independent.`);
-    } else {
+    if (verifiedValues.length > 1) {
+      const logs = values.map((value, index) => JSON.stringify([`Redis-${index + 1}`, value]));
+      const log = logs.join(', ');
+
+      this.logger.error(log);
+
       this.logger.error('Redis instances are sharing data! Check your hostnames.');
+      throw new Error('Redis instances are sharing data! Check your hostnames.');
     }
 
     await Promise.all(this.clients.map((client) => client.del('verification_test')));
