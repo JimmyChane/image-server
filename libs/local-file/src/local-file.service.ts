@@ -1,40 +1,20 @@
 import { wrapWhite } from '@/util/console.text-wrapper';
-import { IMAGE_FORMAT_MAPS } from '@app/image/image-format.model';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { existsSync, lstatSync, ReadStream, WriteStream } from 'fs';
 import { lstat, mkdir } from 'fs/promises';
+import { createReadStream, createWriteStream, readdirSync, unlink } from 'node:fs';
 import { join } from 'path';
 import { cwd } from 'process';
-import { LocalFileDeleteHandler } from './handler/local-file-delete.handler';
-import { LocalFileListHandler } from './handler/local-file-list.handler';
-import { LocalFileStreamHandler } from './handler/local-file-stream.handler';
 
 @Injectable()
 export class LocalFileService implements OnModuleInit {
   private readonly logger = new Logger(LocalFileService.name);
 
-  readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
-  readonly INIT_CREATE_FOLDER: boolean = false;
+  private readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
+  private readonly INIT_CREATE_FOLDER: boolean = false;
 
-  readonly FILE_TYPES: string[];
-
-  private readonly localFileDeleteHandler = new LocalFileDeleteHandler(() => this);
-  private readonly localFileListHandler = new LocalFileListHandler(() => this);
-  private readonly localFileStreamHandler = new LocalFileStreamHandler(() => this);
-
-  constructor() {
-    const fileTypes = Object.values(IMAGE_FORMAT_MAPS).reduce((formats: string[], image) => {
-      formats.push(image.ext.toLowerCase());
-      formats.push(image.ext.toUpperCase());
-      return formats;
-    }, []);
-
-    for (const fileType of fileTypes) {
-      if (fileType.includes('.')) throw new Error('fileTypes shall not include "."');
-    }
-
-    this.FILE_TYPES = fileTypes.map((fileType) => `.${fileType}`);
-  }
+  private readonly INVALID_STARTS = ['.', '/', '\\'];
+  private readonly INVALID_CHARS = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
 
   async onModuleInit(): Promise<void> {
     const isExist = existsSync(this.PUBLIC_DIR);
@@ -57,16 +37,53 @@ export class LocalFileService implements OnModuleInit {
     this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
   }
 
-  async getList(): Promise<string[]> {
-    return this.localFileListHandler.getList();
+  async deleteOne(filename: string): Promise<string | null> {
+    const validatedFilename = this.validateFilename(filename);
+    const isFile = this.isFile(validatedFilename);
+    if (!isFile) return null;
+
+    const absolutePath = this.getAbsolutePathOfFilename(validatedFilename);
+    return new Promise((resolve, reject) => {
+      unlink(absolutePath, (error) => {
+        if (error) reject(error);
+        else resolve(validatedFilename);
+      });
+    });
+  }
+
+  async getList(fileTypes: string[]): Promise<string[]> {
+    const filenames = readdirSync(this.PUBLIC_DIR);
+    const supportedFilepaths = filenames.filter((filepath) => {
+      for (const fileType of fileTypes) {
+        if (filepath.endsWith(fileType)) return true;
+      }
+
+      return false;
+    });
+    return supportedFilepaths.filter((filepath) => {
+      const filePath = this.getAbsolutePathOfFilename(filepath);
+      return existsSync(filePath) && lstatSync(filePath).isFile();
+    });
   }
 
   async readStreamFilename(filename: string): Promise<ReadStream> {
-    return this.localFileStreamHandler.readStreamFilename(filename);
+    const validatedFilename = this.validateFilename(filename);
+
+    const isFile = this.isFile(validatedFilename);
+    if (!isFile) throw new Error('no such file');
+
+    const absolutePath = this.getAbsolutePathOfFilename(validatedFilename);
+    return createReadStream(absolutePath);
   }
 
   async writeStreamFilename(filename: string): Promise<WriteStream> {
-    return this.localFileStreamHandler.writeStreamFilename(filename);
+    const validatedFilename = this.validateFilename(filename);
+
+    const isFile = this.isFile(validatedFilename);
+    if (isFile) throw new Error('file already exist');
+
+    const absolutePath = this.getAbsolutePathOfFilename(validatedFilename);
+    return createWriteStream(absolutePath);
   }
 
   isFile(filename: string): boolean {
@@ -76,5 +93,33 @@ export class LocalFileService implements OnModuleInit {
 
   getAbsolutePathOfFilename(filename: string): string {
     return join(this.PUBLIC_DIR, filename);
+  }
+
+  private filenameStartsWiths(filename: string, ...characters: string[]): string {
+    for (const character of characters) {
+      if (filename.startsWith(character)) return character;
+    }
+    return '';
+  }
+
+  private filenameIncludes(filename: string, ...characters: string[]): string {
+    for (const character of characters) {
+      if (filename.includes(character)) return character;
+    }
+    return '';
+  }
+
+  validateFilename(filename: string): string {
+    const invalidStart = this.filenameStartsWiths(filename, ...this.INVALID_STARTS);
+    if (invalidStart) {
+      throw new Error(`invalid filename format, ${filename}, ${invalidStart}`);
+    }
+
+    const invalidChar = this.filenameIncludes(filename, ...this.INVALID_CHARS);
+    if (invalidChar) {
+      throw new Error(`invalid filename character, ${filename}, ${invalidChar}`);
+    }
+
+    return filename;
   }
 }
