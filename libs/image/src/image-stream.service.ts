@@ -1,27 +1,34 @@
-import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/filename.model';
-import { ImageDimensionModel } from '@/model/image-dimension.model';
+import { benchmark } from '@/util/benchmark';
+import { LocalFileService } from '@app/local-file/local-file.service';
+import { wait } from '@chanzor/utils';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import sharp from 'sharp';
+import { FilenameModel } from './filename.model';
+import { ImageDimensionHandler } from './handler/image-dimension.handler';
+import { ImageFormatHandler } from './handler/image-format.handler';
+import { ImageDimensionModel } from './image-dimension.model';
 import {
   IMAGE_FORMAT_LIST,
   JPEG_IMAGE_FORMAT,
   JPG_IMAGE_FORMAT,
   PNG_IMAGE_FORMAT,
   WEBP_IMAGE_FORMAT,
-} from '@/model/image-format.model';
-import { benchmark } from '@/util/benchmark';
-import { wait } from '@chanzor/utils';
-import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import sharp from 'sharp';
-import { ImageDimensionHandler } from './image-dimension.handler';
-import { ImageFormatHandler } from './image-format.handler';
+} from './image-format.model';
 
-export class ImageStreamHandler {
-  private readonly logger = new Logger(ImageStreamHandler.name);
+@Injectable()
+export class ImageStreamService {
+  private readonly logger = new Logger(ImageStreamService.name);
 
-  private readonly imageDimensionHandler = new ImageDimensionHandler(() => this.localFile());
-  private readonly imageFormatHandler = new ImageFormatHandler(() => this.localFile());
+  private readonly imageDimensionHandler = new ImageDimensionHandler(() => this.localFileService);
+  private readonly imageFormatHandler = new ImageFormatHandler(() => this.localFileService);
 
-  constructor(private readonly localFile: () => LocalFileHandler) {}
+  constructor(private readonly localFileService: LocalFileService) {}
 
   async streamImage(
     name: string,
@@ -37,7 +44,7 @@ export class ImageStreamHandler {
       const filenameSrc = new FilenameModel(name);
 
       const isFile = await benchmark(this.logger, 'isFile', () => {
-        return this.localFile().isFile(filenameSrc.toString());
+        return this.localFileService.isFile(filenameSrc.toString());
       });
       if (isFile) return filenameSrc;
 
@@ -119,7 +126,7 @@ export class ImageStreamHandler {
 
     const readStream = await benchmark(this.logger, 'readStream', async () => {
       const readStream = await benchmark(this.logger, 'readStreamFilename', () => {
-        return this.localFile().readStreamFilename(filenameSrc.toString());
+        return this.localFileService.readStreamFilename(filenameSrc.toString());
       });
       if (!transformer) return readStream;
 

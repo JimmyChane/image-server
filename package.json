@@ -12,7 +12,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "nest build && node dist/main",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"test/**/jest-e2e.*\" \"libs/**/*.ts\" \"nest-cli.*\" \"package.json\" \"tsconfig.*\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
+    "format-code": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"test/**/jest-e2e.*\" \"libs/**/*.ts\" \"nest-cli.*\" \"package.json\" \"tsconfig.*\"",
     "type-check": "tsc --noEmit",
     "up": "docker compose -f docker-compose.prod.yml up -d --build --remove-orphans",
     "down": "docker compose -f docker-compose.prod.yml down",
@@ -85,6 +86,8 @@
     "moduleNameMapper": {
       "^@app/app-config(|/.*)$": "<rootDir>/libs/app-config/src/$1",
       "^@app/app-env(|/.*)$": "<rootDir>/libs/app-env/src/$1",
+      "^@app/image(|/.*)$": "<rootDir>/libs/image/src/$1",
+      "^@app/local-file(|/.*)$": "<rootDir>/libs/local-file/src/$1",
       "^@app/redlock(|/.*)$": "<rootDir>/libs/redlock/src/$1"
     }
   },

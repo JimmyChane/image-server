@@ -1,10 +1,10 @@
-import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/filename.model';
-import { WEBP_IMAGE_FORMAT } from '@/model/image-format.model';
+import { LocalFileService } from '@app/local-file/local-file.service';
 import sharp from 'sharp';
+import { FilenameModel } from '../filename.model';
+import { WEBP_IMAGE_FORMAT } from '../image-format.model';
 
 export class ImageDimensionHandler {
-  constructor(private readonly localFile: () => LocalFileHandler) {}
+  constructor(private readonly localFile: () => LocalFileService) {}
 
   async getFileDimensionByFilename(filename: string): Promise<{ width?: number; height?: number } | undefined> {
     const filenameObj = new FilenameModel(filename);

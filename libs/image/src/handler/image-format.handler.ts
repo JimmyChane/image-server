@@ -1,9 +1,9 @@
-import { LocalFileHandler } from '@/local-file/local-file.handler';
-import { FilenameModel } from '@/model/filename.model';
-import { IMAGE_FORMAT_LIST, ImageFormatModel } from '@/model/image-format.model';
+import { LocalFileService } from '@app/local-file/local-file.service';
+import { FilenameModel } from '../filename.model';
+import { IMAGE_FORMAT_LIST, ImageFormatModel } from '../image-format.model';
 
 export class ImageFormatHandler {
-  constructor(private readonly localFile: () => LocalFileHandler) {}
+  constructor(private readonly localFile: () => LocalFileService) {}
 
   async getFormatsByName(name: string): Promise<ImageFormatModel[]> {
     const formats: ImageFormatModel[] = [];

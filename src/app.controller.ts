@@ -1,3 +1,6 @@
+import { ImageListService } from '@app/image/image-list.service';
+import { ImageStreamService } from '@app/image/image-stream.service';
+import { LocalFileService } from '@app/local-file/local-file.service';
 import { RedlockService } from '@app/redlock/redlock.service';
 import {
   BadRequestException,
@@ -12,15 +15,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-// @ts-ignore
 import { ExecutionError } from 'redlock';
 import { AccessTokenGuard } from './access-token/access-token.guard';
 import { CacheControl } from './cache-control/cache-control.decorator';
 import { Expires } from './expires/expires.decorator';
-import { ImageListHandler } from './image/image-list.handler';
-import { ImageStreamHandler } from './image/image-stream.handler';
-import { LocalFileHandler } from './local-file/local-file.handler';
-import { IMAGE_FORMAT_MAPS } from './model/image-format.model';
 import { benchmark } from './util/benchmark';
 
 @Controller()
@@ -28,20 +26,15 @@ import { benchmark } from './util/benchmark';
 export class AppController implements OnModuleInit {
   private readonly logger = new Logger(AppController.name);
 
-  private readonly localFile = new LocalFileHandler({
-    fileTypes: Object.values(IMAGE_FORMAT_MAPS).reduce((formats: string[], image) => {
-      formats.push(image.ext.toLowerCase());
-      formats.push(image.ext.toUpperCase());
-      return formats;
-    }, []),
-  });
-  private readonly imageListHandler = new ImageListHandler(() => this.localFile);
-  private readonly imageStreamHandler = new ImageStreamHandler(() => this.localFile);
-
-  constructor(private readonly redlockService: RedlockService) {}
+  constructor(
+    private readonly redlockService: RedlockService,
+    private readonly localFileService: LocalFileService,
+    private readonly imagelistService: ImageListService,
+    private readonly imageStreamService: ImageStreamService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.localFile.onModuleInit();
+    await this.localFileService.onModuleInit();
     this.logger.log('AppController onModuleInit');
   }
 
@@ -65,7 +58,7 @@ export class AppController implements OnModuleInit {
     const error = await this.redlockService
       .using(name, 1000, async () => {
         await benchmark(this.logger, 'getStaticImage', async () => {
-          await this.imageStreamHandler.streamImage(
+          await this.imageStreamService.streamImage(
             name,
             { width, height },
             {
@@ -85,7 +78,7 @@ export class AppController implements OnModuleInit {
   // TODO: GET as pagable
   @Get('/api/filenames')
   async getStaticImageFilenames(): Promise<string[]> {
-    const filenames = await this.imageListHandler.getStaticImageFilenames();
+    const filenames = await this.imagelistService.getStaticImageFilenames();
     return filenames.map((filename) => {
       return encodeURIComponent(filename).toString();
     });

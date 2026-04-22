@@ -1,11 +1,11 @@
+import { LocalFileService } from '@app/local-file/local-file.service';
 import { createReadStream, createWriteStream, ReadStream, WriteStream } from 'node:fs';
 import { LocalFileValidateHandler } from './local-file-validate.handler';
-import { LocalFileHandler } from './local-file.handler';
 
 export class LocalFileStreamHandler {
   private readonly localFileValidateHandler = new LocalFileValidateHandler();
 
-  constructor(private readonly localFileHanlder: () => LocalFileHandler) {}
+  constructor(private readonly localFileHanlder: () => LocalFileService) {}
 
   async readStreamFilename(filename: string): Promise<ReadStream> {
     const validatedFilename = this.localFileValidateHandler.validateFilename(filename);

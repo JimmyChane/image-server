@@ -1,8 +1,8 @@
+import { LocalFileService } from '@app/local-file/local-file.service';
 import { existsSync, lstatSync, readdirSync } from 'node:fs';
-import { LocalFileHandler } from './local-file.handler';
 
 export class LocalFileListHandler {
-  constructor(private readonly localFileHanlder: () => LocalFileHandler) {}
+  constructor(private readonly localFileHanlder: () => LocalFileService) {}
 
   async getList(): Promise<string[]> {
     const filenames = readdirSync(this.localFileHanlder().PUBLIC_DIR);

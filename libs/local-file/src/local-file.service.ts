@@ -1,16 +1,17 @@
 import { wrapWhite } from '@/util/console.text-wrapper';
-import { Logger, OnModuleInit } from '@nestjs/common';
-import { lstat } from 'fs/promises';
-import { existsSync, lstatSync, ReadStream, WriteStream } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { cwd } from 'node:process';
-import { LocalFileDeleteHandler } from './local-file-delete.handler';
-import { LocalFileListHandler } from './local-file-list.handler';
-import { LocalFileStreamHandler } from './local-file-stream.handler';
+import { IMAGE_FORMAT_MAPS } from '@app/image/image-format.model';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { existsSync, lstatSync, ReadStream, WriteStream } from 'fs';
+import { lstat, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { cwd } from 'process';
+import { LocalFileDeleteHandler } from './handler/local-file-delete.handler';
+import { LocalFileListHandler } from './handler/local-file-list.handler';
+import { LocalFileStreamHandler } from './handler/local-file-stream.handler';
 
-export class LocalFileHandler implements OnModuleInit {
-  private readonly logger = new Logger(LocalFileHandler.name);
+@Injectable()
+export class LocalFileService implements OnModuleInit {
+  private readonly logger = new Logger(LocalFileService.name);
 
   readonly PUBLIC_DIR = join(cwd(), '/temp/image_storage');
   readonly INIT_CREATE_FOLDER: boolean = false;
@@ -21,12 +22,18 @@ export class LocalFileHandler implements OnModuleInit {
   private readonly localFileListHandler = new LocalFileListHandler(() => this);
   private readonly localFileStreamHandler = new LocalFileStreamHandler(() => this);
 
-  constructor(option: { fileTypes: string[] }) {
-    for (const fileType of option.fileTypes) {
+  constructor() {
+    const fileTypes = Object.values(IMAGE_FORMAT_MAPS).reduce((formats: string[], image) => {
+      formats.push(image.ext.toLowerCase());
+      formats.push(image.ext.toUpperCase());
+      return formats;
+    }, []);
+
+    for (const fileType of fileTypes) {
       if (fileType.includes('.')) throw new Error('fileTypes shall not include "."');
     }
 
-    this.FILE_TYPES = option.fileTypes.map((fileType) => `.${fileType}`);
+    this.FILE_TYPES = fileTypes.map((fileType) => `.${fileType}`);
   }
 
   async onModuleInit(): Promise<void> {
