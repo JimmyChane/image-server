@@ -36,16 +36,13 @@ services:
 
   redis-1:
     image: redis:alpine
-    ports:
-      - '6379:6379'
+    command: ['redis-server', '--port', '6380']
   redis-2:
     image: redis:alpine
-    ports:
-      - '6380:6379'
+    command: ['redis-server', '--port', '6381']
   redis-3:
     image: redis:alpine
-    ports:
-      - '6381:6379'
+    command: ['redis-server', '--port', '6382']
 
   nginx:
     image: nginx:latest

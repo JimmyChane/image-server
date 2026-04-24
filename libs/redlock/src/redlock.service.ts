@@ -13,9 +13,9 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis Connecting...');
 
     const redisList = [
-      new Redis({ host: 'redis-1', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
-      new Redis({ host: 'redis-2', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
-      new Redis({ host: 'redis-3', port: 6379, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({ host: 'redis-1', port: 6380, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({ host: 'redis-2', port: 6381, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({ host: 'redis-3', port: 6382, retryStrategy: (times) => Math.min(times * 50, 2000) }),
     ] as const;
     const clientPromises = redisList.map((redis) => {
       return new Promise<Redis>((r) => {
