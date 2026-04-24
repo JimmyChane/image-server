@@ -30,17 +30,63 @@
     "useUnknownInCatchVariables": true,
     "strictBuiltinIteratorReturn": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@app/app-config": ["libs/app-config/src"],
-      "@app/app-config/*": ["libs/app-config/src/*"],
-      "@app/app-env": ["libs/app-env/src"],
-      "@app/app-env/*": ["libs/app-env/src/*"],
-      "@app/image": ["libs/image/src"],
-      "@app/image/*": ["libs/image/src/*"],
-      "@app/local-file": ["libs/local-file/src"],
-      "@app/local-file/*": ["libs/local-file/src/*"],
-      "@app/redlock": ["libs/redlock/src"],
-      "@app/redlock/*": ["libs/redlock/src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@app/app-config": [
+        "libs/app-config/src"
+      ],
+      "@app/app-config/*": [
+        "libs/app-config/src/*"
+      ],
+      "@app/app-env": [
+        "libs/app-env/src"
+      ],
+      "@app/app-env/*": [
+        "libs/app-env/src/*"
+      ],
+      "@app/auth": [
+        "libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "libs/auth/src/*"
+      ],
+      "@app/cat": [
+        "libs/cat/src"
+      ],
+      "@app/cat/*": [
+        "libs/cat/src/*"
+      ],
+      "@app/database": [
+        "libs/database/src"
+      ],
+      "@app/database/*": [
+        "libs/database/src/*"
+      ],
+      "@app/image": [
+        "libs/image/src"
+      ],
+      "@app/image/*": [
+        "libs/image/src/*"
+      ],
+      "@app/local-file": [
+        "libs/local-file/src"
+      ],
+      "@app/local-file/*": [
+        "libs/local-file/src/*"
+      ],
+      "@app/redlock": [
+        "libs/redlock/src"
+      ],
+      "@app/redlock/*": [
+        "libs/redlock/src/*"
+      ],
+      "@app/user": [
+        "libs/user/src"
+      ],
+      "@app/user/*": [
+        "libs/user/src/*"
+      ]
     }
   }
 }

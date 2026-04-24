@@ -10,7 +10,16 @@ import { CacheControlInterceptor } from './cache-control/cache-control.intercept
 import { ExpiresInterceptor } from './expires/expires.interceptor';
 
 @Module({
-  imports: [AppEnvModule, AppConfigModule, RedlockModule, ImageModule],
+  imports: [
+    // DatabaseModule,
+    AppEnvModule,
+    AppConfigModule,
+    RedlockModule,
+    ImageModule,
+
+    // AuthModule,
+    // RouterModule.register([{ path: 'auth', module: AuthModule }]),
+  ],
   controllers: [AppController],
   providers: [
     AppService,
