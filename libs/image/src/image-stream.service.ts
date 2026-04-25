@@ -1,6 +1,5 @@
 import { benchmark } from '@/util/benchmark';
 import { LocalFileService } from '@app/local-file/local-file.service';
-import { waitMs } from '@chanzor/utils';
 import {
   BadRequestException,
   Injectable,
@@ -36,8 +35,6 @@ export class ImageStreamService {
     option: { width?: number | string; height?: number | string },
     result: { contentType: (contentType: string) => void; write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
-    await waitMs(1000);
-
     const dimenReq = new ImageDimensionModel(option.width, option.height);
     const filenameReq = new FilenameModel(name);
 
