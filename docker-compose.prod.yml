@@ -24,7 +24,7 @@ services:
         condition: any
         delay: 5s
         window: 120s
-      replicas: 3
+      replicas: 6
       resources:
         reservations:
           cpus: '0.2'
