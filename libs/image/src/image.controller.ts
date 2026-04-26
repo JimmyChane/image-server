@@ -1,26 +1,31 @@
 import { AccessTokenGuard } from '@/access-token/access-token.guard';
 import { CacheControl } from '@/cache-control/cache-control.decorator';
 import { Expires } from '@/expires/expires.decorator';
+import { benchmark } from '@/util/benchmark';
 import {
   BadRequestException,
   Controller,
   Get,
+  Logger,
   Param,
   Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ImageResDto } from './dto/image-list.res.dto';
 import { ColorPaletteResDto } from './dto/image-palette.res.dto';
 import { ImageService } from './image.service';
 
 @Controller()
 @UseGuards(AccessTokenGuard)
 export class ImageController {
+  private readonly logger = new Logger(ImageController.name);
+
   constructor(private readonly imageService: ImageService) {}
 
   @Get('/list')
-  async getList(): Promise<string[]> {
+  async getList(): Promise<ImageResDto[]> {
     return this.imageService.getList();
   }
 
@@ -52,20 +57,25 @@ export class ImageController {
       throw new BadRequestException('Invalid height');
     }
 
-    return this.imageService.streamOne(
-      { filename, width, height },
-      {
-        contentType: (contentType: string) => response.contentType(contentType),
-        write: (chunk: any) => response.write(chunk),
-        end: () => response.end(),
-      },
-    );
+    await benchmark(this.logger, 'streamOne', async () => {
+      await this.imageService.streamOne(
+        { filename, width, height },
+        {
+          contentType: (contentType: string) =>
+            response.contentType(contentType),
+          write: (chunk: any) => response.write(chunk),
+          end: () => response.end(),
+        },
+      );
+    });
   }
 
   @Get('/one/:filename/palette')
   async getPallette(
     @Param('filename') filename: string,
   ): Promise<ColorPaletteResDto> {
-    return this.imageService.getOnePallette(filename);
+    return benchmark(this.logger, 'getPallette', () => {
+      return this.imageService.getOnePallette(filename);
+    });
   }
 }

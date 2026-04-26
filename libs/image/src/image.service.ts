@@ -1,4 +1,3 @@
-import { benchmark } from '@/util/benchmark';
 import { ColorPaletteResDto } from '@app/image/dto/image-palette.res.dto';
 import { FilenameModel } from '@app/image/filename.model';
 import { ImageListService } from '@app/image/image-list.service';
@@ -14,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { Vibrant } from 'node-vibrant/node';
 import { ExecutionError } from 'redlock';
+import { ImageResDto } from './dto/image-list.res.dto';
 
 @Injectable()
 export class ImageService {
@@ -27,10 +27,10 @@ export class ImageService {
   ) {}
 
   // TODO: GET as pagable
-  async getList(): Promise<string[]> {
+  async getList(): Promise<ImageResDto[]> {
     const filenames = await this.imagelistService.getList();
     return filenames.map((filename) => {
-      return encodeURIComponent(filename).toString();
+      return { filename: encodeURIComponent(filename).toString() };
     });
   }
 
@@ -56,13 +56,10 @@ export class ImageService {
 
     const error = await this.redlockService
       .using(name, 1000, async () => {
-        await benchmark(this.logger, 'getStaticImage', async () => {
-          await this.imageStreamService.streamImage(
-            name,
-            { width, height },
-            result,
-          );
-        });
+        await this.imageStreamService.streamImage(
+          { filename: name, width, height },
+          result,
+        );
       })
       .catch((e: Error) => e);
 

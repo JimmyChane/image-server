@@ -63,8 +63,7 @@ export class AppService implements OnModuleInit {
       .using(name, 1000, async () => {
         await benchmark(this.logger, 'getStaticImage', async () => {
           await this.imageStreamService.streamImage(
-            name,
-            { width, height },
+            { filename: name, width, height },
             {
               contentType: (contentType: string) =>
                 response.contentType(contentType),

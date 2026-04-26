@@ -24,19 +24,24 @@ export class ImageStreamService {
   ) {}
 
   async streamImage(
-    name: string,
-    option: { width?: number | string; height?: number | string },
+    payload: {
+      filename: string;
+      width?: number | string;
+      height?: number | string;
+    },
     result: {
       contentType: (contentType: string) => void;
       write: (chunk: any) => void;
       end: () => void;
     },
   ): Promise<void> {
-    const dimenReq = new ImageDimensionModel(option.width, option.height);
-    const filenameReq = new FilenameModel(name);
+    const { filename, width, height } = payload;
+
+    const dimenReq = new ImageDimensionModel(width, height);
+    const filenameReq = new FilenameModel(filename);
 
     const filenameSrc = await (async () => {
-      const filenameSrc = new FilenameModel(name);
+      const filenameSrc = new FilenameModel(filename);
 
       const isFile = await benchmark(this.logger, 'isFile', () => {
         return this.localFileService.isFile(filenameSrc.toString());
