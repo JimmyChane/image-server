@@ -7,7 +7,12 @@ import { ImageStreamService } from './image-stream.service';
 
 @Module({
   imports: [LocalFileModule],
-  providers: [ImageListService, ImageStreamService, ImageDimensionService, ImageFormatService],
+  providers: [
+    ImageListService,
+    ImageStreamService,
+    ImageDimensionService,
+    ImageFormatService,
+  ],
   exports: [ImageListService, ImageStreamService],
 })
 export class ImageModule {}

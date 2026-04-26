@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import Redis from 'ioredis';
 // @ts-ignore
 import Redlock, { Lock } from 'redlock';
@@ -13,9 +18,21 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis Connecting...');
 
     const redisList = [
-      new Redis({ host: 'redis-1', port: 6380, retryStrategy: (times) => Math.min(times * 50, 2000) }),
-      new Redis({ host: 'redis-2', port: 6381, retryStrategy: (times) => Math.min(times * 50, 2000) }),
-      new Redis({ host: 'redis-3', port: 6382, retryStrategy: (times) => Math.min(times * 50, 2000) }),
+      new Redis({
+        host: 'redis-1',
+        port: 6380,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+      }),
+      new Redis({
+        host: 'redis-2',
+        port: 6381,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+      }),
+      new Redis({
+        host: 'redis-3',
+        port: 6382,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+      }),
     ] as const;
     const clientPromises = redisList.map((redis) => {
       return new Promise<Redis>((r) => {
@@ -76,27 +93,43 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
 
     await client.set('verification_test', verificationValue);
 
-    const values = await Promise.all(this.clients.map((client) => client.get('verification_test')));
-    const verifiedValues = values.filter((value) => value === verificationValue);
+    const values = await Promise.all(
+      this.clients.map((client) => client.get('verification_test')),
+    );
+    const verifiedValues = values.filter(
+      (value) => value === verificationValue,
+    );
 
     if (verifiedValues.length > 1) {
-      const logs = values.map((value, index) => JSON.stringify([`Redis-${index + 1}`, value]));
+      const logs = values.map((value, index) =>
+        JSON.stringify([`Redis-${index + 1}`, value]),
+      );
       const log = logs.join(', ');
 
       this.logger.error(log);
 
-      this.logger.error('Redis instances are sharing data! Check your hostnames.');
-      throw new Error('Redis instances are sharing data! Check your hostnames.');
+      this.logger.error(
+        'Redis instances are sharing data! Check your hostnames.',
+      );
+      throw new Error(
+        'Redis instances are sharing data! Check your hostnames.',
+      );
     }
 
-    await Promise.all(this.clients.map((client) => client.del('verification_test')));
+    await Promise.all(
+      this.clients.map((client) => client.del('verification_test')),
+    );
   }
 
   async acquire(resource: string, ttl: number): Promise<Lock> {
     return await this.redlock.acquire([resource], ttl);
   }
 
-  async using<T>(resource: string, ttl: number, handler: () => Promise<T>): Promise<T> {
+  async using<T>(
+    resource: string,
+    ttl: number,
+    handler: () => Promise<T>,
+  ): Promise<T> {
     return await this.redlock.using([resource], ttl, async () => handler());
   }
 }

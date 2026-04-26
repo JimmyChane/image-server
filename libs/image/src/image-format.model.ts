@@ -19,10 +19,22 @@ export class ImageFormatModel {
   }
 }
 
-export const WEBP_IMAGE_FORMAT = new ImageFormatModel('image/webp', ImageFormatId.WEBP);
-export const PNG_IMAGE_FORMAT = new ImageFormatModel('image/png', ImageFormatId.PNG);
-export const JPG_IMAGE_FORMAT = new ImageFormatModel('image/jpg', ImageFormatId.JPG);
-export const JPEG_IMAGE_FORMAT = new ImageFormatModel('image/jpeg', ImageFormatId.JPEG);
+export const WEBP_IMAGE_FORMAT = new ImageFormatModel(
+  'image/webp',
+  ImageFormatId.WEBP,
+);
+export const PNG_IMAGE_FORMAT = new ImageFormatModel(
+  'image/png',
+  ImageFormatId.PNG,
+);
+export const JPG_IMAGE_FORMAT = new ImageFormatModel(
+  'image/jpg',
+  ImageFormatId.JPG,
+);
+export const JPEG_IMAGE_FORMAT = new ImageFormatModel(
+  'image/jpeg',
+  ImageFormatId.JPEG,
+);
 
 export const IMAGE_FORMAT_MAPS: Record<ImageFormatId, ImageFormatModel> = {
   [ImageFormatId.WEBP]: WEBP_IMAGE_FORMAT,

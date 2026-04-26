@@ -33,12 +33,19 @@ export class AppService implements OnModuleInit {
     this.logger.log(`App Version ${wrapWhite(this.VERSION_NAME)}`);
 
     this.logger.log(`APP_ENV_MODE ${wrapWhite(this.envService.APP_ENV_MODE)}`);
-    this.logger.log(`APP_ALLOWED_CROSS_ORIGIN ${wrapWhite(JSON.stringify(this.envService.APP_ALLOWED_CROSS_ORIGIN))}`);
+    this.logger.log(
+      `APP_ALLOWED_CROSS_ORIGIN ${wrapWhite(JSON.stringify(this.envService.APP_ALLOWED_CROSS_ORIGIN))}`,
+    );
 
-    this.logger.log(`Listening on ${wrapWhite(`http://localhost:${this.envService.APP_PORT}`)}`);
+    this.logger.log(
+      `Listening on ${wrapWhite(`http://localhost:${this.envService.APP_PORT}`)}`,
+    );
   }
 
-  async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
+  async getStaticImage(
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<void> {
     const paths = request.path
       .split('/')
       .filter((p) => p.length)
@@ -59,7 +66,8 @@ export class AppService implements OnModuleInit {
             name,
             { width, height },
             {
-              contentType: (contentType: string) => response.contentType(contentType),
+              contentType: (contentType: string) =>
+                response.contentType(contentType),
               write: (chunk: any) => response.write(chunk),
               end: () => response.end(),
             },

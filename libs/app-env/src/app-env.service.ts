@@ -20,8 +20,11 @@ export class AppEnvService {
   constructor(configService: ConfigService) {
     this.APP_PORT = requireEnvPort(configService, 'PORT');
     this.APP_ENV_MODE = requireEnvMode(configService, 'NODE_ENV');
-    this.APP_ALLOWED_CROSS_ORIGIN = optionalEnvAllowedCrossOrigin(configService, 'ALLOWED_CROSS_ORIGIN') ?? [];
-    this.APP_ACCESS_TOKEN = optionalEnvAccessToken(configService, 'ACCESS_TOKEN') ?? '';
+    this.APP_ALLOWED_CROSS_ORIGIN =
+      optionalEnvAllowedCrossOrigin(configService, 'ALLOWED_CROSS_ORIGIN') ??
+      [];
+    this.APP_ACCESS_TOKEN =
+      optionalEnvAccessToken(configService, 'ACCESS_TOKEN') ?? '';
 
     // const mongoUri = configService.get('MONGODB_URI');
     // if (typeof mongoUri !== 'string') throw new Error('MONGODB_URI is not a string');

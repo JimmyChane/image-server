@@ -1,5 +1,10 @@
 import { AppEnvService } from '@app/app-env/app-env.service';
-import { type CanActivate, type ExecutionContext, HttpException, Injectable } from '@nestjs/common';
+import {
+  type CanActivate,
+  type ExecutionContext,
+  HttpException,
+  Injectable,
+} from '@nestjs/common';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {

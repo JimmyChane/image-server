@@ -13,7 +13,10 @@ export class AppController {
   @Get('/public/*path')
   @CacheControl({ maxAge: 604_800, public: true })
   @Expires(604_800)
-  async getStaticImage(@Req() request: Request, @Res() response: Response): Promise<void> {
+  async getStaticImage(
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<void> {
     return this.appService.getStaticImage(request, response);
   }
 

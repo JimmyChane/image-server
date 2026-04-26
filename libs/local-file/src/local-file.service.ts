@@ -2,7 +2,12 @@ import { wrapWhite } from '@/util/console.text-wrapper';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { existsSync, lstatSync, ReadStream, WriteStream } from 'fs';
 import { lstat, mkdir } from 'fs/promises';
-import { createReadStream, createWriteStream, readdirSync, unlink } from 'node:fs';
+import {
+  createReadStream,
+  createWriteStream,
+  readdirSync,
+  unlink,
+} from 'node:fs';
 import { join } from 'path';
 import { cwd } from 'process';
 
@@ -14,12 +19,23 @@ export class LocalFileService implements OnModuleInit {
   private readonly INIT_CREATE_FOLDER: boolean = false;
 
   private readonly INVALID_STARTS = ['.', '/', '\\'];
-  private readonly INVALID_CHARS = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
+  private readonly INVALID_CHARS = [
+    '\\',
+    '/',
+    ':',
+    '*',
+    '?',
+    '"',
+    '<',
+    '>',
+    '|',
+  ];
 
   async onModuleInit(): Promise<void> {
     const isExist = existsSync(this.PUBLIC_DIR);
     const stat = await lstat(this.PUBLIC_DIR).catch((e: Error) => e);
-    if (stat instanceof Error) throw new Error('Failed to read stat of directory');
+    if (stat instanceof Error)
+      throw new Error('Failed to read stat of directory');
 
     const isDirectory = isExist && stat.isDirectory();
     if (isDirectory) {
@@ -31,8 +47,11 @@ export class LocalFileService implements OnModuleInit {
       throw new Error(`Directory Not Found: ${wrapWhite(this.PUBLIC_DIR)}`);
     }
 
-    const mkdirError = await mkdir(this.PUBLIC_DIR, { recursive: false }).catch((e: Error) => e);
-    if (mkdirError instanceof Error) throw new Error('Failed to create directory');
+    const mkdirError = await mkdir(this.PUBLIC_DIR, { recursive: false }).catch(
+      (e: Error) => e,
+    );
+    if (mkdirError instanceof Error)
+      throw new Error('Failed to create directory');
 
     this.logger.log(`Directory Created: ${wrapWhite(this.PUBLIC_DIR)}`);
   }
@@ -95,7 +114,10 @@ export class LocalFileService implements OnModuleInit {
     return join(this.PUBLIC_DIR, filename);
   }
 
-  private filenameStartsWiths(filename: string, ...characters: string[]): string {
+  private filenameStartsWiths(
+    filename: string,
+    ...characters: string[]
+  ): string {
     for (const character of characters) {
       if (filename.startsWith(character)) return character;
     }
@@ -110,14 +132,19 @@ export class LocalFileService implements OnModuleInit {
   }
 
   validateFilename(filename: string): string {
-    const invalidStart = this.filenameStartsWiths(filename, ...this.INVALID_STARTS);
+    const invalidStart = this.filenameStartsWiths(
+      filename,
+      ...this.INVALID_STARTS,
+    );
     if (invalidStart) {
       throw new Error(`invalid filename format, ${filename}, ${invalidStart}`);
     }
 
     const invalidChar = this.filenameIncludes(filename, ...this.INVALID_CHARS);
     if (invalidChar) {
-      throw new Error(`invalid filename character, ${filename}, ${invalidChar}`);
+      throw new Error(
+        `invalid filename character, ${filename}, ${invalidChar}`,
+      );
     }
 
     return filename;
