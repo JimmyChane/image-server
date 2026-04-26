@@ -2,17 +2,20 @@ import { LocalFileService } from '@app/local-file/local-file.service';
 import { Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 import { FilenameModel } from './filename.model';
-import { WEBP_IMAGE_FORMAT } from './image-format.model';
+import { ImageFormatService } from './image-format.service';
 
 @Injectable()
 export class ImageDimensionService {
-  constructor(private readonly localFileService: LocalFileService) {}
+  constructor(
+    private readonly localFileService: LocalFileService,
+    private readonly imageFormatService: ImageFormatService,
+  ) {}
 
   async getFileDimensionByFilename(
     filename: string,
   ): Promise<{ width?: number; height?: number } | undefined> {
     const filenameObj = new FilenameModel(filename);
-    if (filenameObj.ext !== WEBP_IMAGE_FORMAT.ext) {
+    if (filenameObj.ext !== this.imageFormatService.WEBP.ext) {
       const absolutePath = this.localFileService.getAbsolutePathOfFilename(
         filenameObj.toString(),
       );

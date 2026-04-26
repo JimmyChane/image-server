@@ -11,13 +11,6 @@ import sharp from 'sharp';
 import { FilenameModel } from './filename.model';
 import { ImageDimensionModel } from './image-dimension.model';
 import { ImageDimensionService } from './image-dimension.service';
-import {
-  IMAGE_FORMAT_LIST,
-  JPEG_IMAGE_FORMAT,
-  JPG_IMAGE_FORMAT,
-  PNG_IMAGE_FORMAT,
-  WEBP_IMAGE_FORMAT,
-} from './image-format.model';
 import { ImageFormatService } from './image-format.service';
 
 @Injectable()
@@ -61,9 +54,9 @@ export class ImageStreamService {
     if (!filenameSrc) throw new NotFoundException('no files found');
 
     // checking supported format
-    const format = IMAGE_FORMAT_LIST.find(
-      (format) => format.ext === filenameReq.ext,
-    );
+    const format = this.imageFormatService
+      .getList()
+      .find((format) => format.ext === filenameReq.ext);
     if (!format) throw new BadRequestException('format not support');
 
     result.contentType(format.mimetype);
@@ -119,14 +112,14 @@ export class ImageStreamService {
       })();
 
       switch (filenameReq.ext) {
-        case PNG_IMAGE_FORMAT.ext:
+        case this.imageFormatService.PNG.ext:
           newTransformer.png();
           break;
-        case JPG_IMAGE_FORMAT.ext:
-        case JPEG_IMAGE_FORMAT.ext:
+        case this.imageFormatService.JPG.ext:
+        case this.imageFormatService.JPEG.ext:
           newTransformer.jpeg();
           break;
-        case WEBP_IMAGE_FORMAT.ext:
+        case this.imageFormatService.WEBP.ext:
           newTransformer.webp();
           break;
       }

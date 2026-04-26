@@ -1,7 +1,7 @@
 import { wrapWhite } from '@/util/console.text-wrapper';
 import { LocalFileService } from '@app/local-file/local-file.service';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { IMAGE_FORMAT_MAPS } from './image-format.model';
+import { ImageFormatService } from './image-format.service';
 
 @Injectable()
 export class ImageListService implements OnModuleInit {
@@ -9,17 +9,19 @@ export class ImageListService implements OnModuleInit {
 
   private FILE_TYPES!: string[];
 
-  constructor(private readonly localFileService: LocalFileService) {}
+  constructor(
+    private readonly localFileService: LocalFileService,
+    private readonly imageFormatService: ImageFormatService,
+  ) {}
 
   onModuleInit(): void {
-    const fileTypes = Object.values(IMAGE_FORMAT_MAPS).reduce(
-      (formats: string[], image) => {
+    const fileTypes = this.imageFormatService
+      .getList()
+      .reduce((formats: string[], image) => {
         formats.push(image.ext.toLowerCase());
         formats.push(image.ext.toUpperCase());
         return formats;
-      },
-      [],
-    );
+      }, []);
 
     for (const fileType of fileTypes) {
       if (fileType.includes('.'))
