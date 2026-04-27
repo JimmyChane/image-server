@@ -1,7 +1,6 @@
 import { AppConfigModule } from '@app/app-config/app-config.module';
 import { AppEnvModule } from '@app/app-env/app-env.module';
 import { ImageModule } from '@app/image/image.module';
-import { RedlockModule } from '@app/redlock/redlock.module';
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -14,7 +13,6 @@ import { ExpiresInterceptor } from './expires/expires.interceptor';
     // DatabaseModule,
     AppEnvModule,
     AppConfigModule,
-    RedlockModule,
 
     ImageModule,
     RouterModule.register([{ path: 'api/img', module: ImageModule }]),
