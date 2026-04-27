@@ -35,10 +35,6 @@ export class AppService implements OnModuleInit {
     this.logger.log(
       `APP_ALLOWED_CROSS_ORIGIN ${wrapWhite(JSON.stringify(this.envService.APP_ALLOWED_CROSS_ORIGIN))}`,
     );
-
-    this.logger.log(
-      `Listening on ${wrapWhite(`http://localhost:${this.envService.APP_PORT}`)}`,
-    );
   }
 
   async getStaticImage(

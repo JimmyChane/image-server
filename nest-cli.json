@@ -2,7 +2,11 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
-  "compilerOptions": { "deleteOutDir": false, "webpack": true },
+  "compilerOptions": {
+    "deleteOutDir": false,
+    "webpack": true,
+    "plugins": ["@nestjs/swagger"]
+  },
   "projects": {
     "app-config": {
       "type": "library",
