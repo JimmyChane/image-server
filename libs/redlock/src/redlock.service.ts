@@ -5,8 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import Redis from 'ioredis';
-// @ts-ignore
-import Redlock, { Lock } from 'redlock';
+import Redlock, { ExecutionError, Lock } from 'redlock';
 
 @Injectable()
 export class RedlockService implements OnModuleInit, OnModuleDestroy {
@@ -129,7 +128,12 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     resource: string,
     ttl: number,
     handler: () => Promise<T>,
-  ): Promise<T> {
-    return await this.redlock.using([resource], ttl, async () => handler());
+  ): Promise<T | 'conflict'> {
+    return await this.redlock
+      .using([resource], ttl, () => handler())
+      .catch((e: Error) => {
+        if (e instanceof ExecutionError) return 'conflict';
+        throw e;
+      });
   }
 }

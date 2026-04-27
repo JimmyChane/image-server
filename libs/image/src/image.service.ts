@@ -12,7 +12,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Vibrant } from 'node-vibrant/node';
-import { ExecutionError } from 'redlock';
 import { ImageResDto } from './dto/image-list.res.dto';
 
 @Injectable()
@@ -54,17 +53,13 @@ export class ImageService {
 
     const name = decodeURIComponent(filename);
 
-    const error = await this.redlockService
-      .using(name, 1000, async () => {
-        await this.imageStreamService.streamImage(
-          { filename: name, width, height },
-          result,
-        );
-      })
-      .catch((e: Error) => e);
-
-    if (error instanceof ExecutionError) throw new ConflictException();
-    if (error instanceof Error) throw error;
+    const error = await this.redlockService.using(name, 1000, async () => {
+      await this.imageStreamService.streamImage(
+        { filename: name, width, height },
+        result,
+      );
+    });
+    if (error === 'conflict') throw new ConflictException();
   }
 
   async getOnePallette(filename: string): Promise<ColorPaletteResDto> {

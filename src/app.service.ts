@@ -13,7 +13,6 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ExecutionError } from 'redlock';
 import { benchmark } from './util/benchmark';
 import { wrapWhite } from './util/console.text-wrapper';
 
@@ -59,24 +58,23 @@ export class AppService implements OnModuleInit {
     const width = request.query['w']?.toString();
     const height = request.query['h']?.toString();
 
-    const error = await this.redlockService
-      .using(name, 1000, async () => {
-        await benchmark(this.logger, 'getStaticImage', async () => {
-          await this.imageStreamService.streamImage(
-            { filename: name, width, height },
-            {
-              contentType: (contentType: string) =>
-                response.contentType(contentType),
-              write: (chunk: any) => response.write(chunk),
-              end: () => response.end(),
-            },
-          );
-        });
-      })
-      .catch((e: Error) => e);
+    const result = await this.redlockService.using(name, 1000, async () => {
+      await benchmark(this.logger, 'getStaticImage', async () => {
+        await this.imageStreamService.streamImage(
+          { filename: name, width, height },
+          {
+            contentType: (contentType: string) =>
+              response.contentType(contentType),
+            write: (chunk: any) => response.write(chunk),
+            end: () => response.end(),
+          },
+        );
+      });
+    });
 
-    if (error instanceof ExecutionError) throw new ConflictException();
-    if (error instanceof Error) throw error;
+    if (result === 'conflict') throw new ConflictException();
+
+    return result;
   }
 
   // TODO: GET as pagable
