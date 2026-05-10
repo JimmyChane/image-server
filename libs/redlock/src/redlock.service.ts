@@ -15,9 +15,9 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly redisService: RedisService) {}
 
   async onModuleInit(): Promise<void> {
-    const clients = this.redisService.getClients();
+    const client = await this.redisService.getClient();
 
-    this.redlock = new Redlock(clients, {
+    this.redlock = new Redlock([client], {
       driftFactor: 0.01, // time in ms
       retryCount: 10,
       retryDelay: 200, // time in ms

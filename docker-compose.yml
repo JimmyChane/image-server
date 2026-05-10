@@ -34,11 +34,7 @@ services:
           target: /usr/src/app/src
     command: npm run start:dev
     depends_on:
-      redis-1:
-        condition: service_healthy
-      redis-2:
-        condition: service_healthy
-      redis-3:
+      redis:
         condition: service_healthy
     healthcheck:
       test:

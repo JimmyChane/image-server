@@ -1,3 +1,4 @@
+import { waitMs } from '@chanzor/utils';
 import {
   Injectable,
   Logger,
@@ -9,52 +10,71 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
-  private clients!: Readonly<Redis[]>;
-  private clientsPublic!: Readonly<Redis[]>;
+  private client!: Redis;
+  private initPromise!: Promise<void>;
+
+  async init(): Promise<void> {
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      console.log('Manually initializing Redis connection...');
+
+      this.logger.log('Connecting...');
+      const clients = await this.initRedis({ host: 'redis', port: 6379 });
+      this.client = clients[0]!;
+      this.logger.log('Connected');
+    })();
+
+    return this.initPromise;
+  }
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('Connecting...');
-
-    const redis1 = new Redis({
-      host: 'redis-1',
-      port: 6380,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
-    const redis2 = new Redis({
-      host: 'redis-2',
-      port: 6381,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
-    const redis3 = new Redis({
-      host: 'redis-3',
-      port: 6382,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
-
-    const redisList = [redis1, redis2, redis3] as const;
-    const clientPromises = redisList.map((redis) => {
-      return new Promise<Redis>((r) => {
-        const onConnect = () => {
-          redis.off('connect', onConnect);
-          r(redis);
-        };
-
-        redis.on('connect', onConnect);
-      });
-    });
-
-    this.clients = await Promise.all(clientPromises);
-    this.clientsPublic = [...this.clients];
-
-    this.logger.log('Connected');
-
-    await this.verifyIsolation();
+    await this.init();
   }
 
   async onModuleDestroy(): Promise<void> {
     this.logger.log('Disconnecting...');
+    await this.destroyRedis(this.client);
+    this.logger.log('Disconnected');
+  }
 
-    const clientPromises = this.clients.map((client) => {
+  private async initRedis(
+    ...nodes: { host: string; port: number }[]
+  ): Promise<Redis[]> {
+    const clientPromises = nodes.map((node) => {
+      const redis = new Redis({
+        host: node.host,
+        port: node.port,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+      });
+
+      return new Promise<Redis>(async (resolve, reject) => {
+        redis.once('ready', () => {
+          this.logger.log(
+            `Redis connected and ready on ${node.host}:${node.port}`,
+          );
+          resolve(redis);
+        });
+
+        redis.on('error', (err) => {
+          this.logger.error(err);
+        });
+
+        await waitMs(15_000);
+        if (redis.status !== 'ready') {
+          reject(
+            new Error(
+              `Redis connection timed out for ${node.host}:${node.port}`,
+            ),
+          );
+        }
+      });
+    });
+    return await Promise.all(clientPromises);
+  }
+
+  private async destroyRedis(...clients: Redis[]) {
+    const clientPromises = clients.map((client) => {
       return new Promise<Redis>(async (r) => {
         const onClose = () => {
           client.off('close', onClose);
@@ -66,48 +86,47 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       });
     });
     await Promise.all(clientPromises);
-
-    this.logger.log('Disconnected');
   }
 
-  private async verifyIsolation(): Promise<void> {
-    const randomIndex = Math.floor(Math.random() * this.clients.length);
-    const client = this.clients.at(randomIndex);
-    const verificationValue = `source-is-redis-${randomIndex + 1}`;
+  async getClient(): Promise<Redis> {
+    if (!this.initPromise) await this.init();
 
-    if (!client) throw new Error('Expecting client');
-
-    await client.set('verification_test', verificationValue);
-
-    const values = await Promise.all(
-      this.clients.map((client) => client.get('verification_test')),
-    );
-    const verifiedValues = values.filter(
-      (value) => value === verificationValue,
-    );
-
-    if (verifiedValues.length > 1) {
-      const logs = values.map((value, index) =>
-        JSON.stringify([`Redis-${index + 1}`, value]),
-      );
-      const log = logs.join(', ');
-
-      this.logger.error(log);
-
-      this.logger.error(
-        'Redis instances are sharing data! Check your hostnames.',
-      );
-      throw new Error(
-        'Redis instances are sharing data! Check your hostnames.',
-      );
+    let attempts = 0;
+    while (!this.client) {
+      if (attempts > 10)
+        throw new Error('Redis instance was never initialized');
+      await waitMs(1_000);
+      attempts++;
     }
 
-    await Promise.all(
-      this.clients.map((client) => client.del('verification_test')),
-    );
-  }
+    if (this.client.status !== 'ready') {
+      await new Promise<void>((resolve, reject) => {
+        if (this.client.status === 'ready') return resolve();
 
-  getClients(): Readonly<Redis[]> {
-    return this.clientsPublic;
+        const onReady = () => {
+          this.client.off('error', onError);
+          resolve();
+        };
+
+        const onError = (error: Error) => {
+          this.client.off('ready', onReady);
+          reject(error);
+        };
+
+        this.client.once('ready', onReady);
+        this.client.once('error', onError);
+
+        // Safety timeout so the app doesn't stay in "starting" state forever
+        setTimeout(() => {
+          if (this.client.status !== 'ready') {
+            this.client.off('ready', onReady);
+            this.client.off('error', onError);
+            return reject(new Error('Redis connection timeout'));
+          }
+        }, 10000);
+      });
+    }
+
+    return this.client;
   }
 }
