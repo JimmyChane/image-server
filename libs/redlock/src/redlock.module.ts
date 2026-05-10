@@ -1,5 +1,10 @@
+import { RedisModule } from '@app/redis/redis.module';
 import { Module } from '@nestjs/common';
 import { RedlockService } from './redlock.service';
 
-@Module({ providers: [RedlockService], exports: [RedlockService] })
+@Module({
+  imports: [RedisModule],
+  providers: [RedlockService],
+  exports: [RedlockService],
+})
 export class RedlockModule {}

@@ -45,6 +45,8 @@
       "@app/image/*": ["libs/image/src/*"],
       "@app/local-file": ["libs/local-file/src"],
       "@app/local-file/*": ["libs/local-file/src/*"],
+      "@app/redis": ["libs/redis/src"],
+      "@app/redis/*": ["libs/redis/src/*"],
       "@app/redlock": ["libs/redlock/src"],
       "@app/redlock/*": ["libs/redlock/src/*"],
       "@app/user": ["libs/user/src"],
