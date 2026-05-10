@@ -2,6 +2,7 @@ import { AppEnvService } from '@app/app-env/app-env.service';
 import { RedlockService } from '@app/redlock/redlock.service';
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import {
   PASSWORD_MAX_LENGTH,
@@ -26,7 +27,7 @@ export class UserService implements OnModuleInit {
     });
   }
 
-  private getValueFromConfig(key: string, min: number, max: number) {
+  private getValueFromConfig(key: string, min: number, max: number): string {
     let value = this.appEnvService.get<string>(key);
     if (typeof value !== 'string') {
       throw new Error(`${key} must be a string`);
@@ -56,27 +57,27 @@ export class UserService implements OnModuleInit {
       PASSWORD_MAX_LENGTH,
     );
 
-    const existingUser = await this.findOne(DEFAULT_USERNAME);
+    const existingUser = await this.findOneByUsername(DEFAULT_USERNAME);
 
     if (existingUser) {
       return existingUser;
     }
 
-    return this.create({
+    return this.createOne({
       username: DEFAULT_USERNAME,
       password: DEFAULT_PASSWORD,
     });
   }
 
-  async findOne(username: string): Promise<UserDocument | null> {
+  async findOneByUsername(username: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ username }).exec();
   }
 
-  async create(userData: {
+  async createOne(payload: {
     username: string;
     password: string;
   }): Promise<UserDocument> {
-    const { username, password } = userData;
+    const { username, password } = payload;
 
     if (username.length < USERNAME_MIN_LENGTH) {
       throw new BadRequestException(
@@ -94,15 +95,28 @@ export class UserService implements OnModuleInit {
         `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`,
       );
     }
-    if (password.length > 255) {
+    if (password.length > PASSWORD_MAX_LENGTH) {
       throw new BadRequestException(
         `Password must be at most 255 characters long`,
       );
     }
 
-    // TODO: hash the password
-
-    const newUser = new this.userModel(userData);
+    const newUser = new this.userModel({
+      username,
+      password: await this.hashPassword(password),
+    });
     return newUser.save();
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
+  }
+
+  async comparePassword(
+    password: string,
+    passwordHashed: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(password, passwordHashed);
   }
 }
