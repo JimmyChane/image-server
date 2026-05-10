@@ -104,7 +104,7 @@
       "^@app/app-env(|/.*)$": "<rootDir>/libs/app-env/src/$1",
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
       "^@app/cat(|/.*)$": "<rootDir>/libs/cat/src/$1",
-      "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
+      "^@app/database-mongodb(|/.*)$": "<rootDir>/libs/database-mongodb/src/$1",
       "^@app/image(|/.*)$": "<rootDir>/libs/image/src/$1",
       "^@app/local-file(|/.*)$": "<rootDir>/libs/local-file/src/$1",
       "^@app/redlock(|/.*)$": "<rootDir>/libs/redlock/src/$1",

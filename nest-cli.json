@@ -36,12 +36,14 @@
       "sourceRoot": "libs/cat/src",
       "compilerOptions": { "tsConfigPath": "libs/cat/tsconfig.lib.json" }
     },
-    "database": {
+    "database-mongodb": {
       "type": "library",
-      "root": "libs/database",
+      "root": "libs/database-mongodb",
       "entryFile": "index",
-      "sourceRoot": "libs/database/src",
-      "compilerOptions": { "tsConfigPath": "libs/database/tsconfig.lib.json" }
+      "sourceRoot": "libs/database-mongodb/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/database-mongodb/tsconfig.lib.json"
+      }
     },
     "image": {
       "type": "library",

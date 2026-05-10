@@ -10,7 +10,6 @@ import { ExpiresInterceptor } from './expires/expires.interceptor';
 
 @Module({
   imports: [
-    // DatabaseModule,
     AppEnvModule,
     AppConfigModule,
 
