@@ -24,14 +24,14 @@ services:
         condition: any
         delay: 5s
         window: 120s
-      replicas: 6
+      replicas: 2
       resources:
         reservations:
           cpus: '0.2'
           memory: 512M
         limits:
           cpus: '1.5'
-          memory:
+          memory: '1G'
     depends_on:
       redis-1:
         condition: service_healthy
