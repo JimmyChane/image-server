@@ -36,3 +36,18 @@ services:
         limits:
           cpus: '1.5'
           memory: 1G
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8001/health',
+        ]
+      start_period: 30s
+      start_interval: 0.5s
+      interval: 20s
+      timeout: 5s
+      retries: 5

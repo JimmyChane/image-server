@@ -41,6 +41,8 @@
       "@app/cat/*": ["libs/cat/src/*"],
       "@app/database-mongodb": ["libs/database-mongodb/src"],
       "@app/database-mongodb/*": ["libs/database-mongodb/src/*"],
+      "@app/health": ["libs/health/src"],
+      "@app/health/*": ["libs/health/src/*"],
       "@app/image": ["libs/image/src"],
       "@app/image/*": ["libs/image/src/*"],
       "@app/local-file": ["libs/local-file/src"],
