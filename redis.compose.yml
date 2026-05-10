@@ -1,0 +1,15 @@
+services:
+  redis-1:
+    image: redis:alpine
+    restart: unless-stopped
+    command: ['redis-server', '--port', '6380']
+
+  redis-2:
+    image: redis:alpine
+    restart: unless-stopped
+    command: ['redis-server', '--port', '6381']
+
+  redis-3:
+    image: redis:alpine
+    restart: unless-stopped
+    command: ['redis-server', '--port', '6382']
