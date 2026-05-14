@@ -3,7 +3,7 @@ import { getString } from '@chanzor/utils';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from '../auth.service';
+import { JwtLoginPayload } from '../auth.service';
 import { acquireAuthEnv } from '../auth.util';
 
 @Injectable()
@@ -16,7 +16,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: Partial<JwtPayload>) {
+  // TODO:
+
+  async validate(payload: Partial<JwtLoginPayload>) {
     const username = getString(payload.username);
 
     return { username };

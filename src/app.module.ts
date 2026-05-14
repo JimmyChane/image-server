@@ -17,11 +17,11 @@ import { ExpiresInterceptor } from './expires/expires.interceptor';
     HealthModule,
     RouterModule.register([{ path: 'health', module: HealthModule }]),
 
-    ImageModule,
-    RouterModule.register([{ path: 'api/img', module: ImageModule }]),
-
     // AuthModule,
     // RouterModule.register([{ path: 'auth', module: AuthModule }]),
+
+    ImageModule,
+    RouterModule.register([{ path: 'api/img', module: ImageModule }]),
   ],
   controllers: [AppController],
   providers: [
