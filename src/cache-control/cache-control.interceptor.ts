@@ -1,9 +1,4 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Response } from 'express';
 import { Observable } from 'rxjs';
@@ -22,20 +17,11 @@ export class CacheControlInterceptor implements NestInterceptor {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const handlerOptions = this.reflector.get<CacheControlOption | undefined>(
-      CACHE_CONTROL_METADATA_KEY,
-      context.getHandler(),
-    );
+    const handlerOptions = this.reflector.get<CacheControlOption | undefined>(CACHE_CONTROL_METADATA_KEY, context.getHandler());
 
-    const classOptions = this.reflector.get<CacheControlOption | undefined>(
-      CACHE_CONTROL_METADATA_KEY,
-      context.getClass(),
-    );
+    const classOptions = this.reflector.get<CacheControlOption | undefined>(CACHE_CONTROL_METADATA_KEY, context.getClass());
 
-    const mergedOptions: CacheControlOption = {
-      ...classOptions,
-      ...handlerOptions,
-    };
+    const mergedOptions: CacheControlOption = { ...classOptions, ...handlerOptions };
 
     const httpContext = context.switchToHttp();
     const response = httpContext.getResponse<Response>();

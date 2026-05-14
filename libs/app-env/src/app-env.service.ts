@@ -1,9 +1,4 @@
-import {
-  optionalEnvAccessToken,
-  optionalEnvAllowedCrossOrigin,
-  requireEnvMode,
-  requireEnvPort,
-} from '@chanzor/nest-leaf';
+import { optionalEnvAccessToken, optionalEnvAllowedCrossOrigin, requireEnvMode, requireEnvPort } from '@chanzor/nest-leaf';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
@@ -16,11 +11,8 @@ export class AppEnvService {
   constructor(private readonly configService: ConfigService) {
     this.APP_PORT = requireEnvPort(configService, 'PORT');
     this.APP_ENV_MODE = requireEnvMode(configService, 'NODE_ENV');
-    this.APP_ALLOWED_CROSS_ORIGIN =
-      optionalEnvAllowedCrossOrigin(configService, 'ALLOWED_CROSS_ORIGIN') ??
-      [];
-    this.APP_ACCESS_TOKEN =
-      optionalEnvAccessToken(configService, 'ACCESS_TOKEN') ?? '';
+    this.APP_ALLOWED_CROSS_ORIGIN = optionalEnvAllowedCrossOrigin(configService, 'ALLOWED_CROSS_ORIGIN') ?? [];
+    this.APP_ACCESS_TOKEN = optionalEnvAccessToken(configService, 'ACCESS_TOKEN') ?? '';
   }
 
   get<T>(key: string): T | undefined {

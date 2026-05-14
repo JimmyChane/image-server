@@ -11,9 +11,7 @@ import { UserService } from './user.service';
     DatabaseMongodbModule,
     AppEnvModule,
     RedlockModule,
-    MongooseModule.forFeature([
-      { name: UserDocument.name, schema: UserSchema },
-    ]),
+    MongooseModule.forFeature([{ name: UserDocument.name, schema: UserSchema }]),
   ],
   providers: [UserService],
   exports: [UserService],

@@ -4,12 +4,7 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
-import {
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_MIN_LENGTH,
-  USERNAME_MAX_LENGTH,
-  USERNAME_MIN_LENGTH,
-} from './user.meta';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH } from './user.meta';
 import { UserDocument } from './user.schema';
 
 @Injectable()
@@ -46,16 +41,8 @@ export class UserService implements OnModuleInit {
   }
 
   private async createDefaultUser(): Promise<UserDocument | null> {
-    const DEFAULT_USERNAME = this.getValueFromConfig(
-      'USER_USERNAME_DEFAULT',
-      USERNAME_MIN_LENGTH,
-      USERNAME_MAX_LENGTH,
-    );
-    const DEFAULT_PASSWORD = this.getValueFromConfig(
-      'USER_PASSWORD_DEFAULT',
-      PASSWORD_MIN_LENGTH,
-      PASSWORD_MAX_LENGTH,
-    );
+    const DEFAULT_USERNAME = this.getValueFromConfig('USER_USERNAME_DEFAULT', USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH);
+    const DEFAULT_PASSWORD = this.getValueFromConfig('USER_PASSWORD_DEFAULT', PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH);
 
     const existingUser = await this.findOneByUsername(DEFAULT_USERNAME);
 
@@ -63,48 +50,31 @@ export class UserService implements OnModuleInit {
       return existingUser;
     }
 
-    return this.createOne({
-      username: DEFAULT_USERNAME,
-      password: DEFAULT_PASSWORD,
-    });
+    return this.createOne({ username: DEFAULT_USERNAME, password: DEFAULT_PASSWORD });
   }
 
   async findOneByUsername(username: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ username }).exec();
   }
 
-  async createOne(payload: {
-    username: string;
-    password: string;
-  }): Promise<UserDocument> {
+  async createOne(payload: { username: string; password: string }): Promise<UserDocument> {
     const { username, password } = payload;
 
     if (username.length < USERNAME_MIN_LENGTH) {
-      throw new BadRequestException(
-        `Username must be at least ${USERNAME_MIN_LENGTH} characters long`,
-      );
+      throw new BadRequestException(`Username must be at least ${USERNAME_MIN_LENGTH} characters long`);
     }
     if (username.length > USERNAME_MAX_LENGTH) {
-      throw new BadRequestException(
-        `Username must be at most ${USERNAME_MAX_LENGTH} characters long`,
-      );
+      throw new BadRequestException(`Username must be at most ${USERNAME_MAX_LENGTH} characters long`);
     }
 
     if (password.length < PASSWORD_MIN_LENGTH) {
-      throw new BadRequestException(
-        `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`,
-      );
+      throw new BadRequestException(`Password must be at least ${PASSWORD_MIN_LENGTH} characters long`);
     }
     if (password.length > PASSWORD_MAX_LENGTH) {
-      throw new BadRequestException(
-        `Password must be at most 255 characters long`,
-      );
+      throw new BadRequestException(`Password must be at most 255 characters long`);
     }
 
-    const newUser = new this.userModel({
-      username,
-      password: await this.hashPassword(password),
-    });
+    const newUser = new this.userModel({ username, password: await this.hashPassword(password) });
     return newUser.save();
   }
 
@@ -113,10 +83,7 @@ export class UserService implements OnModuleInit {
     return await bcrypt.hash(password, saltRounds);
   }
 
-  async comparePassword(
-    password: string,
-    passwordHashed: string,
-  ): Promise<boolean> {
+  async comparePassword(password: string, passwordHashed: string): Promise<boolean> {
     return await bcrypt.compare(password, passwordHashed);
   }
 }

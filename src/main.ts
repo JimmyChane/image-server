@@ -23,11 +23,7 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(appEnvService.APP_PORT);
 
-  console.log(
-    `Listening on ${wrapCyan(`http://localhost:${appEnvService.APP_PORT}`)}`,
-  );
-  console.log(
-    `Swagger on ${wrapCyan(`http://localhost:${appEnvService.APP_PORT}/swagger`)}`,
-  );
+  console.log(`Listening on ${wrapCyan(`http://localhost:${appEnvService.APP_PORT}`)}`);
+  console.log(`Swagger on ${wrapCyan(`http://localhost:${appEnvService.APP_PORT}/swagger`)}`);
 }
 bootstrap();

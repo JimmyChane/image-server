@@ -20,10 +20,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const isMatched = await this.userService.comparePassword(
-      password,
-      user.password,
-    );
+    const isMatched = await this.userService.comparePassword(password, user.password);
     if (!isMatched) {
       throw new UnauthorizedException();
     }

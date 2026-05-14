@@ -15,24 +15,19 @@ export class ImageListService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    const fileTypes = this.imageFormatService
-      .getList()
-      .reduce((formats: string[], image) => {
-        formats.push(image.ext.toLowerCase());
-        formats.push(image.ext.toUpperCase());
-        return formats;
-      }, []);
+    const fileTypes = this.imageFormatService.getList().reduce((formats: string[], image) => {
+      formats.push(image.ext.toLowerCase());
+      formats.push(image.ext.toUpperCase());
+      return formats;
+    }, []);
 
     for (const fileType of fileTypes) {
-      if (fileType.includes('.'))
-        throw new Error('fileTypes shall not include "."');
+      if (fileType.includes('.')) throw new Error('fileTypes shall not include "."');
     }
 
     this.FILE_TYPES = fileTypes.map((fileType) => `.${fileType}`);
 
-    this.logger.log(
-      `File Types: ${wrapWhite(JSON.stringify(this.FILE_TYPES))}`,
-    );
+    this.logger.log(`File Types: ${wrapWhite(JSON.stringify(this.FILE_TYPES))}`);
   }
 
   async getList(): Promise<string[]> {

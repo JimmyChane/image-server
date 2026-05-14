@@ -1,10 +1,5 @@
 import { RedisService } from '@app/redis/redis.service';
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Redlock, { ExecutionError, Lock } from 'redlock';
 
 @Injectable()
@@ -47,11 +42,7 @@ export class RedlockService implements OnModuleInit, OnModuleDestroy {
     return await this.redlock.acquire([resource], ttl);
   }
 
-  async using<T>(
-    resource: string,
-    ttl: number,
-    handler: () => Promise<T>,
-  ): Promise<T | 'conflict'> {
+  async using<T>(resource: string, ttl: number, handler: () => Promise<T>): Promise<T | 'conflict'> {
     return await this.redlock
       .using([resource], ttl, () => handler())
       .catch((e: Error) => {

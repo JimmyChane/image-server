@@ -4,13 +4,7 @@ import { ImageListService } from '@app/image/image-list.service';
 import { ImageStreamService } from '@app/image/image-stream.service';
 import { LocalFileService } from '@app/local-file/local-file.service';
 import { RedlockService } from '@app/redlock/redlock.service';
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Vibrant } from 'node-vibrant/node';
 import { ImageResDto } from './dto/image-list.res.dto';
 
@@ -34,16 +28,8 @@ export class ImageService {
   }
 
   async streamOne(
-    payload: {
-      filename: string;
-      width?: string | number;
-      height?: string | number;
-    },
-    result: {
-      contentType: (contentType: string) => void;
-      write: (chunk: any) => void;
-      end: () => void;
-    },
+    payload: { filename: string; width?: string | number; height?: string | number },
+    result: { contentType: (contentType: string) => void; write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
     const { filename, width, height } = payload;
 
@@ -54,19 +40,14 @@ export class ImageService {
     const name = decodeURIComponent(filename);
 
     const error = await this.redlockService.using(name, 1000, async () => {
-      await this.imageStreamService.streamImage(
-        { filename: name, width, height },
-        result,
-      );
+      await this.imageStreamService.streamImage({ filename: name, width, height }, result);
     });
     if (error === 'conflict') throw new ConflictException();
   }
 
   async getOnePallette(filename: string): Promise<ColorPaletteResDto> {
     const filenameObj = new FilenameModel(filename);
-    const path = this.localFileService.getAbsolutePathOfFilename(
-      filenameObj.toString(),
-    );
+    const path = this.localFileService.getAbsolutePathOfFilename(filenameObj.toString());
 
     const palette = await Vibrant.from(path)
       .getPalette()

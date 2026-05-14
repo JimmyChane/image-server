@@ -11,13 +11,7 @@ import { ImageService } from './image.service';
 
 @Module({
   imports: [AppEnvModule, RedlockModule, LocalFileModule],
-  providers: [
-    ImageDimensionService,
-    ImageFormatService,
-    ImageListService,
-    ImageService,
-    ImageStreamService,
-  ],
+  providers: [ImageDimensionService, ImageFormatService, ImageListService, ImageService, ImageStreamService],
   controllers: [ImageController],
   exports: [ImageListService, ImageStreamService],
 })

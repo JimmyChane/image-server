@@ -1,12 +1,6 @@
 import { benchmark } from '@/util/benchmark';
 import { LocalFileService } from '@app/local-file/local-file.service';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import sharp from 'sharp';
 import { FilenameModel } from './filename.model';
 import { ImageDimensionModel } from './image-dimension.model';
@@ -24,16 +18,8 @@ export class ImageStreamService {
   ) {}
 
   async streamImage(
-    payload: {
-      filename: string;
-      width?: number | string;
-      height?: number | string;
-    },
-    result: {
-      contentType: (contentType: string) => void;
-      write: (chunk: any) => void;
-      end: () => void;
-    },
+    payload: { filename: string; width?: number | string; height?: number | string },
+    result: { contentType: (contentType: string) => void; write: (chunk: any) => void; end: () => void },
   ): Promise<void> {
     const { filename, width, height } = payload;
 
@@ -59,9 +45,7 @@ export class ImageStreamService {
     if (!filenameSrc) throw new NotFoundException('no files found');
 
     // checking supported format
-    const format = this.imageFormatService
-      .getList()
-      .find((format) => format.ext === filenameReq.ext);
+    const format = this.imageFormatService.getList().find((format) => format.ext === filenameReq.ext);
     if (!format) throw new BadRequestException('format not support');
 
     result.contentType(format.mimetype);
@@ -72,15 +56,9 @@ export class ImageStreamService {
     transformer = await benchmark(this.logger, 'transfomer', async () => {
       if (!dimenReq.isSet()) return undefined;
 
-      const dimenImg = await benchmark(
-        this.logger,
-        'getFileDimensionByFilename',
-        () => {
-          return this.imageDimensionService.getFileDimensionByFilename(
-            filenameSrc.toString(),
-          );
-        },
-      );
+      const dimenImg = await benchmark(this.logger, 'getFileDimensionByFilename', () => {
+        return this.imageDimensionService.getFileDimensionByFilename(filenameSrc.toString());
+      });
 
       const isSameWidth = dimenReq.width === dimenImg?.width;
       const isSameHeight = dimenReq.height === dimenImg?.height;
@@ -133,15 +111,9 @@ export class ImageStreamService {
     }
 
     const readStream = await benchmark(this.logger, 'readStream', async () => {
-      const readStream = await benchmark(
-        this.logger,
-        'readStreamFilename',
-        () => {
-          return this.localFileService.readStreamFilename(
-            filenameSrc.toString(),
-          );
-        },
-      );
+      const readStream = await benchmark(this.logger, 'readStreamFilename', () => {
+        return this.localFileService.readStreamFilename(filenameSrc.toString());
+      });
       if (!transformer) return readStream;
 
       return readStream.pipe(transformer);

@@ -2,16 +2,7 @@ import { AccessTokenGuard } from '@/access-token/access-token.guard';
 import { CacheControl } from '@/cache-control/cache-control.decorator';
 import { Expires } from '@/expires/expires.decorator';
 import { benchmark } from '@/util/benchmark';
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Logger,
-  Param,
-  Query,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Controller, Get, Logger, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { ImageResDto } from './dto/image-list.res.dto';
 import { ColorPaletteResDto } from './dto/image-palette.res.dto';
@@ -42,18 +33,10 @@ export class ImageController {
       throw new BadRequestException('Invalid filename');
     }
 
-    if (
-      typeof width !== 'string' &&
-      typeof width !== 'number' &&
-      width !== undefined
-    ) {
+    if (typeof width !== 'string' && typeof width !== 'number' && width !== undefined) {
       throw new BadRequestException('Invalid width');
     }
-    if (
-      typeof height !== 'string' &&
-      typeof height !== 'number' &&
-      height !== undefined
-    ) {
+    if (typeof height !== 'string' && typeof height !== 'number' && height !== undefined) {
       throw new BadRequestException('Invalid height');
     }
 
@@ -61,8 +44,7 @@ export class ImageController {
       await this.imageService.streamOne(
         { filename, width, height },
         {
-          contentType: (contentType: string) =>
-            response.contentType(contentType),
+          contentType: (contentType: string) => response.contentType(contentType),
           write: (chunk: any) => response.write(chunk),
           end: () => response.end(),
         },
@@ -71,9 +53,7 @@ export class ImageController {
   }
 
   @Get('/one/:filename/palette')
-  async getPallette(
-    @Param('filename') filename: string,
-  ): Promise<ColorPaletteResDto> {
+  async getPallette(@Param('filename') filename: string): Promise<ColorPaletteResDto> {
     return benchmark(this.logger, 'getPallette', () => {
       return this.imageService.getOnePallette(filename);
     });
