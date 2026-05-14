@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { acquireAuthEnv } from './auth.util';
 import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
@@ -16,10 +17,10 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     JwtModule.registerAsync({
       imports: [AppEnvModule],
       inject: [AppEnvService],
-      useFactory: async (configService: AppEnvService) => ({
-        secret: configService.JWT_SECRET,
-        signOptions: { expiresIn: '1h' },
-      }),
+      useFactory: async (appEnvService: AppEnvService) => {
+        const { JWT_SECRET } = acquireAuthEnv(appEnvService);
+        return { secret: JWT_SECRET, signOptions: { expiresIn: '1h' } };
+      },
     }),
   ],
   controllers: [AuthController],

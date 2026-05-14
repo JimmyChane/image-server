@@ -10,22 +10,30 @@ export interface JwtPayload {
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
     private jwtService: JwtService,
+    private userService: UserService,
   ) {}
 
   async login(username: string, password: string): Promise<AuthLoginResDto> {
     const user = await this.userService.findOneByUsername(username);
-
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    if (!(await this.userService.comparePassword(password, user.password))) {
+    const isMatched = await this.userService.comparePassword(
+      password,
+      user.password,
+    );
+    if (!isMatched) {
       throw new UnauthorizedException();
     }
 
-    const payload: JwtPayload = { username: user.username };
-    return { access_token: this.jwtService.sign(payload) };
+    const accessToken = this.signPayload(user.username);
+    return { access_token: accessToken };
+  }
+
+  private signPayload(username: string): string {
+    const payload: JwtPayload = { username };
+    return this.jwtService.sign(payload);
   }
 }
