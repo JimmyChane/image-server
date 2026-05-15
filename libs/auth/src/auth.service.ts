@@ -1,11 +1,13 @@
 import { RedisService } from '@app/redis/redis.service';
 import { UserService } from '@app/user/user.service';
+import { parseUnknownEnum } from '@chanzor/utils';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthExchangeReqDto } from './dto/auth-exchange.req.dto';
 import { AuthLoginReqDto } from './dto/auth-login.req.dto';
 import { AuthAccessResDto, AuthLoginResDto } from './dto/auth-login.res.dto';
 import { AuthRefreshReqDto } from './dto/auth-refresh.req.dto';
+import { AuthUserStateEnum } from './enum/auth-user-state.enum';
 
 export type JwtLoginPayload = { type: 'login'; userId: string; username: string };
 export type JwtRefreshPayload = { type: 'refresh'; userId: string; username: string };
@@ -23,6 +25,17 @@ export class AuthService {
 
   private getSessionKey(userId: string): string {
     return `auth:session:${userId}`;
+  }
+
+  private async setUserState(userId: string, state: AuthUserStateEnum): Promise<void> {
+    const client = await this.redisService.getClient();
+    await client.set(this.getSessionKey(userId), state, 'EX', this.SESSION_TTL);
+  }
+
+  async getUserState(userId: string): Promise<AuthUserStateEnum | undefined> {
+    const client = await this.redisService.getClient();
+    const value = client.get(this.getSessionKey(userId));
+    return parseUnknownEnum(value, Object.values(AuthUserStateEnum));
   }
 
   async login(payload: AuthLoginReqDto): Promise<AuthLoginResDto> {
@@ -46,9 +59,8 @@ export class AuthService {
       if (typeof payloadJwt.username !== 'string' || !payloadJwt.username.length) throw new UnauthorizedException('Invalid username');
 
       const userId = payloadJwt.userId;
-      const client = await this.redisService.getClient();
 
-      await client.set(this.getSessionKey(userId), 'active', 'EX', this.SESSION_TTL);
+      await this.setUserState(userId, AuthUserStateEnum.ACTIVE);
 
       return this.generateTokenPair(userId, payloadJwt.username);
     } catch (e) {
@@ -67,7 +79,7 @@ export class AuthService {
       const session = await client.get(this.getSessionKey(userId));
       if (!session || session === 'inactive') throw new UnauthorizedException('Session expired due to inactivity');
 
-      await client.set(this.getSessionKey(userId), 'active', 'EX', this.SESSION_TTL);
+      await this.setUserState(userId, AuthUserStateEnum.ACTIVE);
 
       return this.generateTokenPair(userId, payloadJwt.username);
     } catch (e) {
@@ -86,7 +98,6 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    const client = await this.redisService.getClient();
-    await client.set(this.getSessionKey(userId), 'active', 'EX', this.SESSION_TTL);
+    await this.setUserState(userId, AuthUserStateEnum.LOGOUT);
   }
 }
